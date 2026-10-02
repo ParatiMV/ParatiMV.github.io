@@ -22,8 +22,15 @@ async function go(html, mood) {
 }
 const reveal = async (root, gap = 1500) => { for (const n of root.querySelectorAll('.l')) { n.classList.add('on'); await sleep(gap); } };
 const btn = (root, label, cls = '') => new Promise(res => {
-  const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label;
-  b.onclick = () => { b.disabled = true; res(); }; root.append(b); requestAnimationFrame(() => b.classList.add('on'));
+  const wrap = document.createElement('div');
+  wrap.className = 'btn-slot';
+  const b = document.createElement('button');
+  b.className = 'btn ' + cls;
+  b.textContent = label;
+  b.onclick = () => { b.disabled = true; res(); };
+  wrap.append(b);
+  root.append(wrap);
+  requestAnimationFrame(() => b.classList.add('on'));
 });
 const lines = (arr, first) => arr.map((t, i) => `<p class="l ${i === 0 && first ? 'kick' : ''}">${esc(t)}</p>`).join('');
 
@@ -73,32 +80,43 @@ async function intro() {
   const s = await go(lines(T.intro), 'rose'); await reveal(s, 1700); await sleep(1800);
 }
 async function universe() {
+  // La interacción es opcional: no hace falta "resolver" nada para continuar.
   const U = CONFIG.universe, seen = new Set();
   const s = await go(`<p class="l kick">${esc(T.universe)}</p><div class="orbs">${U.map((u, i) => `<button class="orb" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div><p class="orb-cap" id="cap">&nbsp;</p>`, 'rose');
   reveal(s, 600);
-  await new Promise(res => s.querySelectorAll('.orb').forEach(o => o.onclick = async () => {
-    const cap = $('#cap'); cap.classList.remove('on'); await sleep(250);
-    cap.textContent = U[o.dataset.i].text; cap.classList.add('on'); o.classList.add('seen'); seen.add(o.dataset.i);
-    if (seen.size === U.length && !s.querySelector('.btn')) { await sleep(1800); res(); }
-  }));
+  s.querySelectorAll('.orb').forEach(o => o.onclick = async () => {
+    const cap = $('#cap'); cap.classList.remove('on'); await sleep(180);
+    cap.textContent = U[o.dataset.i].text; cap.classList.add('on');
+    o.classList.add('seen'); seen.add(o.dataset.i);
+  });
+  await sleep(2400);
+  await btn(s, 'Seguir');
 }
 async function eggs() {
+  // Los easter eggs se descubren como una pequeña secuencia, no como un acertijo.
   const E = CONFIG.easterEggs; let n = -1;
-  const s = await go(`<p class="l kick">${esc(T.eggs)}</p><div class="card l" id="card" role="button" tabindex="0">Toca</div>`, 'blue');
+  const s = await go(`<p class="l kick">${esc(T.eggs)}</p><div class="card l" id="card" role="button" tabindex="0">Toca para descubrir</div>`, 'blue');
   reveal(s, 1300);
   const card = $('#card');
   await new Promise(res => card.onclick = async () => {
     if (n >= E.length) return;
-    card.classList.add('swap'); await sleep(350); n++;
+    card.classList.add('swap'); await sleep(280); n++;
     if (n < E.length) card.innerHTML = `<span>${esc(E[n].phrase)}${E[n].note ? `<small>${esc(E[n].note)}</small>` : ''}</span>`;
     card.classList.remove('swap');
-    if (n === E.length - 1) { n = E.length; await sleep(1500); res(); }
+    if (n === 2 && !s.querySelector('.btn-slot')) {
+      await sleep(700);
+      btn(s, 'Seguir').then(res);
+    }
+    if (n === E.length - 1) { n = E.length; await sleep(900); res(); }
   });
 }
 async function letter() {
   const paras = CONFIG.personalMessage.trim().split(/\n\s*\n/);
   const s = await go(`<div class="letter">${paras.map(p => `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('')}</div>`, 'warm');
-  for (const p of s.querySelectorAll('.l')) { p.classList.add('on'); p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); await sleep(900 + p.textContent.length * 35); }
+  for (const p of s.querySelectorAll('.l')) {
+    p.classList.add('on');
+    await sleep(900 + p.textContent.length * 35);
+  }
   await sleep(800); await btn(s, 'Seguir');
 }
 async function fakeEnd() {
@@ -112,15 +130,27 @@ async function artist() {
   $('#ph').classList.add('on'); await sleep(3600); await btn(s, 'Siguiente');
 }
 async function art() {
+  // Antes de mostrar EL ARTE, se confirma que está a solas.
+  const guard = await go(`
+    <p class="l kick">Antes de seguir…</p>
+    <p class="l">Asegúrate de que no haya nadie mirando.</p>
+    <p class="small l">Lo que viene ahora es solo para ti.</p>
+  `, 'black');
+  await reveal(guard, 1200);
+  await btn(guard, 'Estoy a solas');
+
   const s = await go(`<h1 class="l">${esc(T.artTitle)}</h1><div class="vid" id="vid"><video playsinline preload="auto" src="${esc(CONFIG.finalVideo)}"></video><div class="play" id="play">▶</div></div>`, 'black');
   $('#music').hidden = true; window.bgAudio?.pause();
   const v = s.querySelector('video'), play = $('#play');
-  s.querySelector('h1').classList.add('on'); await sleep(2800); $('#vid').classList.add('on');
+  s.querySelector('h1').classList.add('on'); await sleep(1800); $('#vid').classList.add('on');
   v.onerror = () => { play.textContent = 'Falta ' + CONFIG.finalVideo; play.style.fontSize = '1rem'; };
   play.onclick = () => v.play();
   v.onplay = () => play.classList.add('gone');
   v.onclick = () => v.paused ? v.play() : v.pause();
   await new Promise(res => v.onended = res);
+
+  // El cumpleaños NO aparece automáticamente: ella tiene que abrir la última puerta.
+  await btn(s, 'Y por último...');
 }
 async function theEnd() {   // Final absoluto: sin botones, sin salida.
   await go(`<h1 class="final l on">${esc(T.final)}</h1>`, 'warm');
@@ -143,3 +173,4 @@ addEventListener('load', async () => {
   await sleep(900); $('#boot').classList.add('gone');
   (standalone() || dev) ? story() : install();
 });
+
