@@ -62,11 +62,11 @@ async function password() {
   const i = $('#pw');
   await new Promise(res => {
     const check = () => {
-      if (i.value.trim().toLowerCase() === CONFIG.password.toLowerCase()) return res();
+      if (i.value.trim().toLowerCase() === CONFIG.password.toLowerCase()) { window.startMusic?.(); return res(); }
       $('#err').textContent = CONFIG.passwordHint || 'Esa no es.';
       i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake');
     };
-    $('#ok').onclick = check; i.onkeydown = e => e.key === 'Enter' && check();
+    $('#ok').onclick = check; i.onkeydown = e => { if (e.key === 'Enter') check(); };
   });
 }
 async function intro() {
@@ -135,6 +135,7 @@ function setupMusic() {
   const a = window.bgAudio = new Audio(CONFIG.music), b = $('#music'); a.loop = true; a.volume = .35; b.hidden = false;
   b.onclick = () => { if (a.paused) { a.play(); b.classList.remove('off'); } else { a.pause(); b.classList.add('off'); } };
   b.classList.add('off');
+  window.startMusic = () => a.play().then(() => b.classList.remove('off')).catch(() => {});
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
