@@ -2,10 +2,10 @@
 const CONFIG = {
   name: "Carmen",
   password: "4ever",          // se compara sin mayúsculas/minúsculas
-  passwordHint: "",                       // pista opcional si se equivoca
+  passwordHint: "Nooo, que boba...",                       // pista opcional si se equivoca
   artistImage: "assets/artist.jpg",       // TU FOTO (reemplazar)
   finalVideo: "assets/final-video.mp4",   // EL VÍDEO del perrito (reemplazar)
-  music: "",                              // p. ej. "assets/music.mp3" (opcional)
+  music: "the_mountain-nostalgic-610152.mp3",                              // p. ej. "assets/music.mp3" (opcional)
   colors: { bg: "#0a0c14", text: "#f4efe9", warm: "#f0b985", rose: "#e8a3b8", blue: "#8db3ea" },
 
   // Tu mensaje: separa párrafos con una línea en blanco.
