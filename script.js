@@ -77,7 +77,15 @@ async function password() {
   });
 }
 async function intro() {
-  const s = await go(lines(T.intro), 'rose'); await reveal(s, 1700); await sleep(1800);
+  // El texto ahora explica la interacción real: hay cosas que debe tocar para descubrir.
+  const s = await go(`
+    <p class="l kick">Vale.</p>
+    <p class="l">Hay cosas aquí que solo aparecen cuando las tocas.</p>
+    <p class="small l">No tienes que resolver nada. Solo descubre lo que reconozcas.</p>
+  `, 'rose');
+  await reveal(s, 1500);
+  await sleep(700);
+  await btn(s, 'Empezar');
 }
 async function universe() {
   // La interacción es opcional: no hace falta "resolver" nada para continuar.
@@ -144,6 +152,9 @@ async function art() {
   const v = s.querySelector('video'), play = $('#play');
   s.querySelector('h1').classList.add('on'); await sleep(1800); $('#vid').classList.add('on');
   v.onerror = () => { play.textContent = 'Falta ' + CONFIG.finalVideo; play.style.fontSize = '1rem'; };
+  v.onloadedmetadata = () => {
+    if (v.videoWidth && v.videoHeight) s.style.setProperty('--video-ratio', `${v.videoWidth} / ${v.videoHeight}`);
+  };
   play.onclick = () => v.play();
   v.onplay = () => play.classList.add('gone');
   v.onclick = () => v.paused ? v.play() : v.pause();
@@ -165,6 +176,15 @@ function setupMusic() {
   const a = window.bgAudio = new Audio(CONFIG.music), b = $('#music'); a.loop = true; a.volume = .35; b.hidden = false;
   b.onclick = () => { if (a.paused) { a.play(); b.classList.remove('off'); } else { a.pause(); b.classList.add('off'); } };
   b.classList.add('off');
+  const stopMusic = () => {
+    if (!a.paused) a.pause();
+    b.classList.add('off');
+  };
+  // Al salir, bloquear el móvil o cambiar de app, la música se detiene.
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopMusic(); });
+  addEventListener('pagehide', stopMusic);
+  addEventListener('blur', stopMusic);
+  window.stopMusic = stopMusic;
   window.startMusic = () => a.play().then(() => b.classList.remove('off')).catch(() => {});
 }
 
