@@ -37,7 +37,7 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 .btn.ghost { background: none; border: 0; text-decoration: underline; opacity: .6; font-weight: 400; }
 
 /* Los botones que aparecen dinámicamente no alteran el centro de la escena */
-.btn-slot { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 1.5rem); transform: translateX(-50%); min-height: 52px; display: grid; place-items: center; z-index: 2; }
+.btn-slot { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 1.5rem); transform: translateX(-50%); min-height: 52px; display: grid; place-items: center; z-index: 2; padding-top: 1rem; }
 .btn-slot .btn { margin: 0; white-space: nowrap; }
 
 .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; max-width: 34ch; text-align: left; font: 1.05rem/1.4 var(--sans); counter-reset: s; }
@@ -73,11 +73,11 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 .letter p { font-size: clamp(1.15rem, 4.8vw, 1.4rem); line-height: 1.65; max-width: 46ch; }
 
 /* El vídeo se adapta a su proporción real, sin dejar una caja enorme alrededor */
-.vid { position: relative; width: min(92vw, 720px); height: min(72dvh, 720px); border-radius: 18px; overflow: hidden; background: #000;
+.vid { position: relative; width: min(92vw, 520px); aspect-ratio: var(--video-ratio, 9 / 16); max-height: 64dvh; border-radius: 18px; overflow: hidden; background: #000;
   display: grid; place-items: center;
   opacity: 0; transform: scale(.97); transition: opacity 1.5s ease, transform 1.8s ease; }
 .vid.on { opacity: 1; transform: none; }
-.vid video { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; display: block; border-radius: 12px; }
+.vid video { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 12px; }
 .play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 3.4rem; background: rgba(0,0,0,.35); transition: opacity .6s; cursor: pointer; }
 .play.gone { opacity: 0; pointer-events: none; }
 
@@ -93,8 +93,8 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 
 @media (max-width: 520px) {
   .scene { gap: .9rem; padding-left: 1.2rem; padding-right: 1.2rem; }
-  .vid { width: 92vw; height: min(68dvh, 680px); border-radius: 14px; }
-  .btn-slot { bottom: calc(env(safe-area-inset-bottom) + 1.2rem); }
+  .vid { width: min(92vw, 430px); max-height: 64dvh; border-radius: 14px; }
+  .btn-slot { bottom: calc(env(safe-area-inset-bottom) + 1.2rem); padding-top: 1.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
