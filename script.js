@@ -88,89 +88,84 @@ async function intro() {
   await btn(s, 'Empezar');
 }
 async function universe() {
-  // Primera capa: no es un menú que hay que vaciar. Algunas cosas esconden
-  // una segunda capa si vuelves a tocarlas. Hay una pista sutil para que
-  // la exploración se sienta intencionada, no aleatoria.
-  const U = CONFIG.universe;
-  const E = CONFIG.easterEggs;
-  const secretMap = [0, 2, 5, 8];
-  const found = new Set();
+  // Recuerdos reales del chat: cada elemento representa algo que sí aparece
+  // repetidamente entre vosotros. No hay que completar una cuadrícula para seguir.
+  const memories = [
+    { emoji: '🍓', title: 'Fresas', reveal: 'Besis de fresiii 🍓', detail: 'Una despedida que acabó convirtiéndose en una frase vuestra.' },
+    { emoji: '🎮', title: 'Brawl Stars', reveal: '¿Al Brawl?', detail: 'El juego que aparecía una y otra vez en vuestras conversaciones.' },
+    { emoji: '📱', title: 'TikTok', reveal: 'Que me copias 😒', detail: 'Una de esas frases pequeñas que se repetían entre bromas.' },
+    { emoji: '🏊', title: 'Piscina', reveal: '5 años más tarde', detail: 'Una frase que aparecía incluso cuando la espera era mucho más corta.' },
+    { emoji: '👑', title: 'Yo mando', reveal: 'Porque yo mando', detail: 'Sí, esta discusión también tiene historia.' },
+    { emoji: '🦄', title: 'Unicornio', reveal: 'Me siento unicornio', detail: 'Una frase que ya estaba entre las cosas que querías guardar.' },
+    { emoji: '🎶', title: 'Romeo Santos', reveal: 'Romeo Santos muy tú', detail: 'Otra referencia que terminó quedándose asociada a vosotros.' },
+    { emoji: '🍦', title: 'Helado', reveal: 'Muchos besitos a mi heladito de vainilla', detail: 'El helado aparece tantas veces que era imposible no dejarlo aquí.' },
+    { emoji: '🍄', title: 'Seta', reveal: 'Seta', detail: 'Esta palabra se convirtió en una referencia recurrente del chat.' }
+  ];
+
   const s = await go(`
-    <p class="l kick">${esc(T.universe)}</p>
-    <p class="small l">Algunas cosas esconden un recuerdo. Si algo te suena demasiado… vuelve a tocarlo.</p>
-    <div class="orbs">${U.map((u, i) => `<button class="orb ${secretMap.includes(i) ? 'maybe-secret' : ''}" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div>
-    <p class="orb-cap" id="cap">&nbsp;</p>
+    <p class="l kick">Toca algo que te suene.</p>
+    <p class="small l">No hay orden correcto. Solo recuerdos.</p>
+    <div class="memory-grid l" id="memoryGrid">
+      ${memories.map((m, i) => `<button class="memory-card" data-i="${i}" aria-label="${esc(m.title)}"><span class="memory-emoji">${m.emoji}</span><span class="memory-title">${esc(m.title)}</span></button>`).join('')}
+    </div>
+    <div class="memory-reveal" id="memoryReveal" aria-live="polite">
+      <p class="memory-phrase" id="memoryPhrase"></p>
+      <p class="small" id="memoryDetail"></p>
+    </div>
   `, 'rose');
   await reveal(s, 650);
 
-  await new Promise(resolve => {
-    s.querySelectorAll('.orb').forEach(o => {
-      let taps = 0;
-      o.onclick = async () => {
-        const i = Number(o.dataset.i);
-        const cap = $('#cap');
-        taps++;
-        cap.classList.remove('on');
-        await sleep(180);
-
-        if (secretMap.includes(i) && taps >= 2) {
-          const secretIndex = secretMap.indexOf(i);
-          cap.textContent = E[secretIndex]?.phrase || U[i].text;
-          o.classList.add('egg-found');
-          found.add(i);
-        } else {
-          cap.textContent = U[i].text;
-          o.classList.add('seen');
-        }
-        cap.classList.add('on');
-
-        if (found.size === secretMap.length && !s.querySelector('.btn-slot')) {
-          await sleep(900);
-          await btn(s, 'Seguir');
-          resolve();
-        }
-      };
-    });
+  const revealBox = $('#memoryReveal');
+  s.querySelectorAll('.memory-card').forEach(card => {
+    card.onclick = async () => {
+      const m = memories[Number(card.dataset.i)];
+      s.querySelectorAll('.memory-card').forEach(x => x.classList.remove('active'));
+      card.classList.add('active');
+      revealBox.classList.remove('on');
+      await sleep(180);
+      $('#memoryPhrase').textContent = m.reveal;
+      $('#memoryDetail').textContent = m.detail;
+      revealBox.classList.add('on');
+    };
   });
+
+  // Una sola acción explícita para avanzar; descubrir recuerdos es opcional.
+  await btn(s, 'Seguir');
 }
-async function eggs() {
-  // Segunda capa: cuatro descubrimientos son suficientes para avanzar.
-  // Los demás siguen siendo opcionales para quien quiera curiosear.
-  const E = CONFIG.easterEggs;
-  const selected = E.slice(4, 12);
-  const order = [2, 6, 0, 5, 3, 7, 1, 4];
-  const s = await go(`
-    <p class="l kick">${esc(T.eggs)}</p>
-    <p class="small l">Aquí hay cosas que solo nosotros reconoceríamos. Algunas están escondidas.</p>
-    <div class="egg-grid l" id="eggGrid">
-      ${selected.map((_, i) => `<button class="egg-tile" data-i="${i}" aria-label="Descubrir">?</button>`).join('')}
-    </div>
-    <p class="orb-cap" id="eggCap">&nbsp;</p>
-  `, 'blue');
-  await reveal(s, 900);
 
-  await new Promise(resolve => {
-    const discovered = new Set();
-    s.querySelectorAll('.egg-tile').forEach(tile => {
-      tile.onclick = async () => {
-        const i = Number(tile.dataset.i);
-        if (tile.classList.contains('found')) return;
-        tile.classList.add('found');
-        tile.textContent = '✓';
-        const phrase = selected[order[i]]?.phrase || selected[i]?.phrase || '';
-        $('#eggCap').classList.remove('on');
-        await sleep(180);
-        $('#eggCap').textContent = phrase;
-        $('#eggCap').classList.add('on');
-        discovered.add(i);
-        if (discovered.size >= 4 && !s.querySelector('.btn-slot')) {
-          await sleep(700);
-          await btn(s, 'Seguir');
-          resolve();
-        }
-      };
-    });
+async function eggs() {
+  // Easter Eggs como recuerdos reales del chat: no hay cuadrícula ni contador.
+  // Se presentan como pequeños fragmentos de conversación que puedes explorar.
+  const fragments = [
+    { date: '03/14', lines: ['Nunca nadie me había querido como tú', 'tu me enseñaste a amar definitivamente', 'Que me copias 😒'], note: 'Esa frase apareció justo después de hablar de copiarse.' },
+    { date: '04/03', lines: ['Besiss', 'besis de fresii', 'Besis a mi biscoquito de nata 😍'], note: 'De ahí salió una de esas despedidas que acabaron siendo muy vuestras.' },
+    { date: '01/14', lines: ['…', '5 años más tarde', 'Dis que'], note: 'No habían pasado cinco años. Evidentemente.' },
+    { date: '09/06', lines: ['te daría muchos besitos', 'y abrazitos', 'Eso no es de Dios'], note: 'Una respuesta que se quedó como frase recurrente.' }
+  ];
+  const s = await go(`
+    <p class="l kick">Algunas cosas no necesitan explicación.</p>
+    <p class="small l">Solo verlas otra vez y pensar: “JAJAJ, esto sí me acuerdo”.</p>
+    <div class="chat-memory l" id="chatMemory">
+      ${fragments.map((f, i) => `<button class="chat-fragment" data-i="${i}"><span class="chat-date">${f.date}</span>${f.lines.map((line, j) => `<span class="chat-line ${j === f.lines.length - 1 ? 'secret-line' : ''}">${esc(line)}</span>`).join('')}</button>`).join('')}
+    </div>
+    <div class="memory-reveal" id="eggReveal"><p class="memory-phrase" id="eggPhrase"></p><p class="small" id="eggNote"></p></div>
+  `, 'blue');
+  await reveal(s, 700);
+
+  s.querySelectorAll('.chat-fragment').forEach(fragment => {
+    fragment.onclick = async () => {
+      const f = fragments[Number(fragment.dataset.i)];
+      s.querySelectorAll('.chat-fragment').forEach(x => x.classList.remove('active'));
+      fragment.classList.add('active');
+      $('#eggReveal').classList.remove('on');
+      await sleep(180);
+      $('#eggPhrase').textContent = f.lines[f.lines.length - 1];
+      $('#eggNote').textContent = f.note;
+      $('#eggReveal').classList.add('on');
+    };
   });
+
+  await btn(s, 'Seguir');
 }
 async function letter() {
   const paras = CONFIG.personalMessage.trim().split(/\n\s*\n/);
@@ -192,7 +187,6 @@ async function artist() {
   $('#ph').classList.add('on'); await sleep(3600); await btn(s, 'Siguiente');
 }
 async function art() {
-  // Antes de mostrar EL ARTE, se confirma que está a solas.
   const guard = await go(`
     <p class="l kick">Antes de seguir…</p>
     <p class="l">Asegúrate de que no haya nadie mirando.</p>
@@ -201,21 +195,29 @@ async function art() {
   await reveal(guard, 1200);
   await btn(guard, 'Estoy a solas');
 
-  const s = await go(`<h1 class="l">${esc(T.artTitle)}</h1><div class="vid" id="vid"><video playsinline preload="auto" src="${esc(CONFIG.finalVideo)}"></video><div class="play" id="play">▶</div></div>`, 'black');
+  const s = await go(`<h1 class="l">${esc(T.artTitle)}</h1><div class="vid" id="vid"><video playsinline preload="metadata" src="${esc(CONFIG.finalVideo)}"></video><div class="play" id="play">▶</div></div><div class="art-actions"><button class="btn" id="lastDoor">Y por último...</button></div>`, 'black');
+  s.classList.add('art-scene');
   $('#music').hidden = true; window.bgAudio?.pause();
-  const v = s.querySelector('video'), play = $('#play');
-  s.querySelector('h1').classList.add('on'); await sleep(1800); $('#vid').classList.add('on');
+  const v = s.querySelector('video'), play = $('#play'), lastDoor = $('#lastDoor');
+  s.querySelector('h1').classList.add('on');
+  await sleep(1200);
+  $('#vid').classList.add('on');
+  lastDoor.disabled = true;
+  lastDoor.classList.remove('on');
   v.onerror = () => { play.textContent = 'Falta ' + CONFIG.finalVideo; play.style.fontSize = '1rem'; };
   v.onloadedmetadata = () => {
-    if (v.videoWidth && v.videoHeight) s.style.setProperty('--video-ratio', `${v.videoWidth} / ${v.videoHeight}`);
+    // El marco es vertical y estable; solo guardamos la proporción real para accesibilidad/debug.
+    if (v.videoWidth && v.videoHeight) s.style.setProperty('--video-native-ratio', `${v.videoWidth} / ${v.videoHeight}`);
   };
-  play.onclick = () => v.play();
+  play.onclick = () => v.play().catch(() => {});
   v.onplay = () => play.classList.add('gone');
-  v.onclick = () => v.paused ? v.play() : v.pause();
+  v.onclick = () => v.paused ? v.play().catch(() => {}) : v.pause();
   await new Promise(res => v.onended = res);
 
-  // El cumpleaños NO aparece automáticamente: ella tiene que abrir la última puerta.
-  await btn(s, 'Y por último...');
+  await sleep(500);
+  lastDoor.disabled = false;
+  requestAnimationFrame(() => lastDoor.classList.add('on'));
+  await new Promise(res => lastDoor.onclick = () => { lastDoor.disabled = true; res(); });
 }
 async function theEnd() {   // Final absoluto: sin botones, sin salida.
   await go(`<h1 class="final l on">${esc(T.final)}</h1>`, 'warm');
