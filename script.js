@@ -88,82 +88,88 @@ async function intro() {
   await btn(s, 'Empezar');
 }
 async function universe() {
-  // Aquí empieza la parte de descubrimiento: tocar una cosa la muestra,
-  // pero algunas esconden un segundo detalle si vuelves a insistir.
+  // Primera capa: no es un menú que hay que vaciar. Algunas cosas esconden
+  // una segunda capa si vuelves a tocarlas. Hay una pista sutil para que
+  // la exploración se sienta intencionada, no aleatoria.
   const U = CONFIG.universe;
   const E = CONFIG.easterEggs;
   const secretMap = [0, 2, 5, 8];
   const found = new Set();
   const s = await go(`
     <p class="l kick">${esc(T.universe)}</p>
-    <p class="small l">Toca una cosa para verla. Algunas esconden algo más.</p>
-    <div class="orbs">${U.map((u, i) => `<button class="orb" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div>
+    <p class="small l">Algunas cosas esconden un recuerdo. Si algo te suena demasiado… vuelve a tocarlo.</p>
+    <div class="orbs">${U.map((u, i) => `<button class="orb ${secretMap.includes(i) ? 'maybe-secret' : ''}" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div>
     <p class="orb-cap" id="cap">&nbsp;</p>
   `, 'rose');
   await reveal(s, 650);
 
-  s.querySelectorAll('.orb').forEach(o => {
-    let taps = 0;
-    let timer = null;
-    o.onclick = async () => {
-      const i = Number(o.dataset.i);
-      const cap = $('#cap');
-      taps++;
-      cap.classList.remove('on');
-      await sleep(180);
+  await new Promise(resolve => {
+    s.querySelectorAll('.orb').forEach(o => {
+      let taps = 0;
+      o.onclick = async () => {
+        const i = Number(o.dataset.i);
+        const cap = $('#cap');
+        taps++;
+        cap.classList.remove('on');
+        await sleep(180);
 
-      if (secretMap.includes(i) && taps >= 2) {
-        const secretIndex = secretMap.indexOf(i);
-        cap.textContent = E[secretIndex]?.phrase || U[i].text;
-        o.classList.add('egg-found');
-        found.add(i);
-      } else {
-        cap.textContent = U[i].text;
-        o.classList.add('seen');
-      }
-      cap.classList.add('on');
+        if (secretMap.includes(i) && taps >= 2) {
+          const secretIndex = secretMap.indexOf(i);
+          cap.textContent = E[secretIndex]?.phrase || U[i].text;
+          o.classList.add('egg-found');
+          found.add(i);
+        } else {
+          cap.textContent = U[i].text;
+          o.classList.add('seen');
+        }
+        cap.classList.add('on');
 
-      if (found.size === secretMap.length && !s.querySelector('.btn-slot')) {
-        await sleep(900);
-        btn(s, 'Seguir');
-      }
-    };
-    o.addEventListener('dblclick', e => e.preventDefault());
+        if (found.size === secretMap.length && !s.querySelector('.btn-slot')) {
+          await sleep(900);
+          await btn(s, 'Seguir');
+          resolve();
+        }
+      };
+    });
   });
 }
 async function eggs() {
-  // Segunda capa: los easter eggs ya descubiertos vuelven a aparecer aquí,
-  // pero como recuerdos sueltos, no como un menú de acertijos.
+  // Segunda capa: cuatro descubrimientos son suficientes para avanzar.
+  // Los demás siguen siendo opcionales para quien quiera curiosear.
   const E = CONFIG.easterEggs;
   const selected = E.slice(4, 12);
+  const order = [2, 6, 0, 5, 3, 7, 1, 4];
   const s = await go(`
     <p class="l kick">${esc(T.eggs)}</p>
-    <p class="small l">No hace falta encontrar todos. Solo mira qué se esconde.</p>
+    <p class="small l">Aquí hay cosas que solo nosotros reconoceríamos. Algunas están escondidas.</p>
     <div class="egg-grid l" id="eggGrid">
       ${selected.map((_, i) => `<button class="egg-tile" data-i="${i}" aria-label="Descubrir">?</button>`).join('')}
     </div>
     <p class="orb-cap" id="eggCap">&nbsp;</p>
   `, 'blue');
-  reveal(s, 1000);
+  await reveal(s, 900);
 
-  const order = [2, 6, 0, 5, 3, 7, 1, 4];
-  const discovered = new Set();
-  s.querySelectorAll('.egg-tile').forEach(tile => {
-    tile.onclick = async () => {
-      const i = Number(tile.dataset.i);
-      if (tile.classList.contains('found')) return;
-      tile.classList.add('found');
-      const phrase = selected[order[i]]?.phrase || selected[i]?.phrase || '';
-      $('#eggCap').classList.remove('on');
-      await sleep(180);
-      $('#eggCap').textContent = phrase;
-      $('#eggCap').classList.add('on');
-      discovered.add(i);
-      if (discovered.size >= 4 && !s.querySelector('.btn-slot')) {
-        await sleep(700);
-        btn(s, 'Seguir');
-      }
-    };
+  await new Promise(resolve => {
+    const discovered = new Set();
+    s.querySelectorAll('.egg-tile').forEach(tile => {
+      tile.onclick = async () => {
+        const i = Number(tile.dataset.i);
+        if (tile.classList.contains('found')) return;
+        tile.classList.add('found');
+        tile.textContent = '✓';
+        const phrase = selected[order[i]]?.phrase || selected[i]?.phrase || '';
+        $('#eggCap').classList.remove('on');
+        await sleep(180);
+        $('#eggCap').textContent = phrase;
+        $('#eggCap').classList.add('on');
+        discovered.add(i);
+        if (discovered.size >= 4 && !s.querySelector('.btn-slot')) {
+          await sleep(700);
+          await btn(s, 'Seguir');
+          resolve();
+        }
+      };
+    });
   });
 }
 async function letter() {
