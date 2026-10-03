@@ -1,4 +1,4 @@
-const V = 'regalo-v5';
+const V = 'regalo-v6';
 const SHELL = ['./', 'index.html', 'style.css', 'script.js', 'config.js', 'manifest.json',
   'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png', 'assets/artist.jpg'];
 self.addEventListener('install', e => e.waitUntil(
@@ -13,4 +13,3 @@ self.addEventListener('fetch', e => {
     return res;
   }).catch(() => caches.match(r.url, { ignoreSearch: true }).then(h => h || caches.match('index.html'))));
 });
-

@@ -88,34 +88,82 @@ async function intro() {
   await btn(s, 'Empezar');
 }
 async function universe() {
-  // La interacción es opcional: no hace falta "resolver" nada para continuar.
-  const U = CONFIG.universe, seen = new Set();
-  const s = await go(`<p class="l kick">${esc(T.universe)}</p><div class="orbs">${U.map((u, i) => `<button class="orb" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div><p class="orb-cap" id="cap">&nbsp;</p>`, 'rose');
-  reveal(s, 600);
-  s.querySelectorAll('.orb').forEach(o => o.onclick = async () => {
-    const cap = $('#cap'); cap.classList.remove('on'); await sleep(180);
-    cap.textContent = U[o.dataset.i].text; cap.classList.add('on');
-    o.classList.add('seen'); seen.add(o.dataset.i);
+  // Aquí empieza la parte de descubrimiento: tocar una cosa la muestra,
+  // pero algunas esconden un segundo detalle si vuelves a insistir.
+  const U = CONFIG.universe;
+  const E = CONFIG.easterEggs;
+  const secretMap = [0, 2, 5, 8];
+  const found = new Set();
+  const s = await go(`
+    <p class="l kick">${esc(T.universe)}</p>
+    <p class="small l">Toca una cosa para verla. Algunas esconden algo más.</p>
+    <div class="orbs">${U.map((u, i) => `<button class="orb" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div>
+    <p class="orb-cap" id="cap">&nbsp;</p>
+  `, 'rose');
+  await reveal(s, 650);
+
+  s.querySelectorAll('.orb').forEach(o => {
+    let taps = 0;
+    let timer = null;
+    o.onclick = async () => {
+      const i = Number(o.dataset.i);
+      const cap = $('#cap');
+      taps++;
+      cap.classList.remove('on');
+      await sleep(180);
+
+      if (secretMap.includes(i) && taps >= 2) {
+        const secretIndex = secretMap.indexOf(i);
+        cap.textContent = E[secretIndex]?.phrase || U[i].text;
+        o.classList.add('egg-found');
+        found.add(i);
+      } else {
+        cap.textContent = U[i].text;
+        o.classList.add('seen');
+      }
+      cap.classList.add('on');
+
+      if (found.size === secretMap.length && !s.querySelector('.btn-slot')) {
+        await sleep(900);
+        btn(s, 'Seguir');
+      }
+    };
+    o.addEventListener('dblclick', e => e.preventDefault());
   });
-  await sleep(2400);
-  await btn(s, 'Seguir');
 }
 async function eggs() {
-  // Los easter eggs se descubren como una pequeña secuencia, no como un acertijo.
-  const E = CONFIG.easterEggs; let n = -1;
-  const s = await go(`<p class="l kick">${esc(T.eggs)}</p><div class="card l" id="card" role="button" tabindex="0">Toca para descubrir</div>`, 'blue');
-  reveal(s, 1300);
-  const card = $('#card');
-  await new Promise(res => card.onclick = async () => {
-    if (n >= E.length) return;
-    card.classList.add('swap'); await sleep(280); n++;
-    if (n < E.length) card.innerHTML = `<span>${esc(E[n].phrase)}${E[n].note ? `<small>${esc(E[n].note)}</small>` : ''}</span>`;
-    card.classList.remove('swap');
-    if (n === 2 && !s.querySelector('.btn-slot')) {
-      await sleep(700);
-      btn(s, 'Seguir').then(res);
-    }
-    if (n === E.length - 1) { n = E.length; await sleep(900); res(); }
+  // Segunda capa: los easter eggs ya descubiertos vuelven a aparecer aquí,
+  // pero como recuerdos sueltos, no como un menú de acertijos.
+  const E = CONFIG.easterEggs;
+  const selected = E.slice(4, 12);
+  const s = await go(`
+    <p class="l kick">${esc(T.eggs)}</p>
+    <p class="small l">No hace falta encontrar todos. Solo mira qué se esconde.</p>
+    <div class="egg-grid l" id="eggGrid">
+      ${selected.map((_, i) => `<button class="egg-tile" data-i="${i}" aria-label="Descubrir">?</button>`).join('')}
+    </div>
+    <p class="orb-cap" id="eggCap">&nbsp;</p>
+  `, 'blue');
+  reveal(s, 1000);
+
+  const order = [2, 6, 0, 5, 3, 7, 1, 4];
+  const discovered = new Set();
+  s.querySelectorAll('.egg-tile').forEach(tile => {
+    tile.onclick = async () => {
+      const i = Number(tile.dataset.i);
+      if (tile.classList.contains('found')) return;
+      tile.classList.add('found');
+      const phrase = selected[order[i]]?.phrase || selected[i]?.phrase || '';
+      $('#eggCap').classList.remove('on');
+      await sleep(180);
+      $('#eggCap').textContent = phrase;
+      $('#eggCap').classList.add('on');
+      discovered.add(i);
+      if (discovered.size >= 4 && !s.querySelector('.btn-slot')) {
+        await sleep(700);
+        btn(s, 'Seguir');
+      }
+    };
   });
 }
 async function letter() {
@@ -193,4 +241,3 @@ addEventListener('load', async () => {
   await sleep(900); $('#boot').classList.add('gone');
   (standalone() || dev) ? story() : install();
 });
-
