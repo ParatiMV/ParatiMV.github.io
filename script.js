@@ -88,23 +88,22 @@ async function intro() {
   await btn(s, 'Empezar');
 }
 async function universe() {
-  // Recuerdos reales del chat: cada elemento representa algo que sí aparece
-  // repetidamente entre vosotros. No hay que completar una cuadrícula para seguir.
+  // Recuerdos: cada revelación está basada en algo que sí aparece en el chat.
   const memories = [
-    { emoji: '🍓', title: 'Fresas', reveal: 'Besis de fresiii 🍓', detail: 'Una despedida que acabó convirtiéndose en una frase vuestra.' },
-    { emoji: '🎮', title: 'Brawl Stars', reveal: '¿Al Brawl?', detail: 'El juego que aparecía una y otra vez en vuestras conversaciones.' },
-    { emoji: '📱', title: 'TikTok', reveal: 'Que me copias 😒', detail: 'Una de esas frases pequeñas que se repetían entre bromas.' },
-    { emoji: '🏊', title: 'Piscina', reveal: '5 años más tarde', detail: 'Una frase que aparecía incluso cuando la espera era mucho más corta.' },
-    { emoji: '👑', title: 'Yo mando', reveal: 'Porque yo mando', detail: 'Sí, esta discusión también tiene historia.' },
-    { emoji: '🦄', title: 'Unicornio', reveal: 'Me siento unicornio', detail: 'Una frase que ya estaba entre las cosas que querías guardar.' },
-    { emoji: '🎶', title: 'Romeo Santos', reveal: 'Romeo Santos muy tú', detail: 'Otra referencia que terminó quedándose asociada a vosotros.' },
-    { emoji: '🍦', title: 'Helado', reveal: 'Muchos besitos a mi heladito de vainilla', detail: 'El helado aparece tantas veces que era imposible no dejarlo aquí.' },
-    { emoji: '🍄', title: 'Seta', reveal: 'Seta', detail: 'Esta palabra se convirtió en una referencia recurrente del chat.' }
+    { emoji: '🍓', title: 'Fresas', reveal: 'Besis de fresii', detail: 'Carmen: «Besis» · Tú: «besis de fresii» · Carmen: «Besis a mi biscoquito de nata 😍»' },
+    { emoji: '🎮', title: 'Brawl Stars', reveal: '¿Al Brawl?', detail: 'Una referencia que aparece varias veces cuando habláis de jugar.' },
+    { emoji: '📱', title: 'TikTok', reveal: 'Que me copias 😒', detail: 'Carmen te lo soltó el 14 de marzo de 2025, y volvió a aparecer muchas veces después.' },
+    { emoji: '🏊', title: 'Piscina', reveal: 'La piscina sí tiene historia.', detail: 'Tú: «gracias por no enfadarte conmigo por estar una semana solo en piscinas,te amo mucho».' },
+    { emoji: '👑', title: 'Quién manda', reveal: 'Mando yo', detail: 'El 3 de abril de 2025 Carmen: «Yo soy el jefe» · «Mando yo».' },
+    { emoji: '🦄', title: 'Unicornio', reveal: 'Me siento unicornio', detail: 'Tú: «me siento unicornio» · Carmen: «Te identificas como unicornio?».' },
+    { emoji: '🎶', title: 'Romeo Santos', reveal: 'You — Romeo Santos', detail: 'Carmen te dijo «Romeo santos muy tú». Esta te la dedico a ti.' },
+    { emoji: '🍦', title: 'Helado', reveal: 'Heladito de vainilla', detail: 'Carmen: «Muchos besitos a mi heladito de vainilla».' },
+    { emoji: '🍄', title: 'Seta', reveal: 'Seta', detail: 'Una de esas palabras pequeñas que aparecen en vuestra conversación y que solo vosotros reconoceríais.' }
   ];
 
   const s = await go(`
     <p class="l kick">Toca algo que te suene.</p>
-    <p class="small l">No hay orden correcto. Solo recuerdos.</p>
+    <p class="small l">No hay una respuesta correcta. Solo recuerdos.</p>
     <div class="memory-grid l" id="memoryGrid">
       ${memories.map((m, i) => `<button class="memory-card" data-i="${i}" aria-label="${esc(m.title)}"><span class="memory-emoji">${m.emoji}</span><span class="memory-title">${esc(m.title)}</span></button>`).join('')}
     </div>
@@ -129,52 +128,106 @@ async function universe() {
     };
   });
 
-  // Una sola acción explícita para avanzar; descubrir recuerdos es opcional.
   await btn(s, 'Seguir');
 }
 
 async function eggs() {
-  // Easter Eggs como recuerdos reales del chat: no hay cuadrícula ni contador.
-  // Se presentan como pequeños fragmentos de conversación que puedes explorar.
+  // Easter Eggs reales: las pistas son visualmente blancas y vacías.
+  // Al abrir una, se muestra el intercambio real del chat. No se inventa texto.
   const fragments = [
-    { date: '03/14', lines: ['Nunca nadie me había querido como tú', 'tu me enseñaste a amar definitivamente', 'Que me copias 😒'], note: 'Esa frase apareció justo después de hablar de copiarse.' },
-    { date: '04/03', lines: ['Besiss', 'besis de fresii', 'Besis a mi biscoquito de nata 😍'], note: 'De ahí salió una de esas despedidas que acabaron siendo muy vuestras.' },
-    { date: '01/14', lines: ['…', '5 años más tarde', 'Dis que'], note: 'No habían pasado cinco años. Evidentemente.' },
-    { date: '09/06', lines: ['te daría muchos besitos', 'y abrazitos', 'Eso no es de Dios'], note: 'Una respuesta que se quedó como frase recurrente.' }
+    { date: '14/03/25', lines: [
+      ['Carmen', 'Te amo a ti'],
+      ['Carmen', 'Me encantas tu'],
+      ['Carmen', 'Me gustas tu'],
+      ['Carmen', 'Quiero estar contigo'],
+      ['Carmen', 'Solo TU'],
+      ['Tú', 'nunca nadie me había querido como tu'],
+      ['Tú', 'tu me enseñaste a amar definitivamente'],
+      ['Carmen', 'Que me copias 😒']
+    ]},
+    { date: '03/04/25', lines: [
+      ['Carmen', 'Besiss'],
+      ['Tú', 'besis de fresii'],
+      ['Carmen', 'Besis a mi biscoquito de nata 😍'],
+      ['Carmen', 'Muchos besitos a mi heladito de vainilla']
+    ]},
+    { date: '14/01/26', lines: [
+      ['Carmen', '5 años más tarde'],
+      ['Tú', 'sory'],
+      ['Carmen', 'Dis que'],
+      ['Carmen', 'Español please'],
+      ['Tú', 'perdon mi amorcito'],
+      ['Tú', 'andaba limpiando el baño']
+    ]},
+    { date: '06/09/25', lines: [
+      ['Tú', 'estoy solita en casita'],
+      ['Tú', 'vente'],
+      ['Carmen', 'Nu'],
+      ['Tú', 'por que'],
+      ['Carmen', 'Que me harías'],
+      ['Carmen', 'Eso no es de Dios']
+    ]},
+    { date: '03/29/25', lines: [
+      ['Carmen', 'Relaja la raja']
+    ]}
   ];
-  const s = await go(`
-    <p class="l kick">Algunas cosas no necesitan explicación.</p>
-    <p class="small l">Solo verlas otra vez y pensar: “JAJAJ, esto sí me acuerdo”.</p>
-    <div class="chat-memory l" id="chatMemory">
-      ${fragments.map((f, i) => `<button class="chat-fragment" data-i="${i}"><span class="chat-date">${f.date}</span>${f.lines.map((line, j) => `<span class="chat-line ${j === f.lines.length - 1 ? 'secret-line' : ''}">${esc(line)}</span>`).join('')}</button>`).join('')}
-    </div>
-    <div class="memory-reveal" id="eggReveal"><p class="memory-phrase" id="eggPhrase"></p><p class="small" id="eggNote"></p></div>
-  `, 'blue');
-  await reveal(s, 700);
 
-  s.querySelectorAll('.chat-fragment').forEach(fragment => {
-    fragment.onclick = async () => {
-      const f = fragments[Number(fragment.dataset.i)];
-      s.querySelectorAll('.chat-fragment').forEach(x => x.classList.remove('active'));
-      fragment.classList.add('active');
-      $('#eggReveal').classList.remove('on');
-      await sleep(180);
-      $('#eggPhrase').textContent = f.lines[f.lines.length - 1];
-      $('#eggNote').textContent = f.note;
-      $('#eggReveal').classList.add('on');
+  const s = await go(`
+    <p class="l kick">Hay algunas cosas escondidas.</p>
+    <p class="small l">No tienes que encontrarlas todas. Si una te suena, ábrela.</p>
+    <div class="egg-blanks l" id="eggBlanks">
+      ${fragments.map((f, i) => `<button class="egg-blank" data-i="${i}" aria-label="Abrir recuerdo del ${f.date}"></button>`).join('')}
+    </div>
+    <div class="egg-dialog" id="eggDialog" aria-live="polite" aria-hidden="true">
+      <div class="egg-dialog-inner">
+        <span class="egg-date" id="eggDate"></span>
+        <div class="egg-chat" id="eggChat"></div>
+      </div>
+    </div>
+  `, 'blue');
+  await reveal(s, 800);
+
+  const dialog = $('#eggDialog');
+  s.querySelectorAll('.egg-blank').forEach(blank => {
+    blank.onclick = async () => {
+      const f = fragments[Number(blank.dataset.i)];
+      s.querySelectorAll('.egg-blank').forEach(x => x.classList.remove('active'));
+      blank.classList.add('active');
+      $('#eggDate').textContent = f.date;
+      $('#eggChat').innerHTML = f.lines.map(([who, text]) => `<div class="egg-msg"><span class="egg-who">${esc(who)}</span><span class="egg-text">${esc(text)}</span></div>`).join('');
+      dialog.setAttribute('aria-hidden', 'false');
+      dialog.classList.remove('on');
+      await sleep(40);
+      dialog.classList.add('on');
     };
   });
 
   await btn(s, 'Seguir');
 }
+
 async function letter() {
   const paras = CONFIG.personalMessage.trim().split(/\n\s*\n/);
-  const s = await go(`<div class="letter">${paras.map(p => `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('')}</div>`, 'warm');
-  for (const p of s.querySelectorAll('.l')) {
+  const s = await go(`
+    <div class="letter-scene">
+      <div class="letter">${paras.map(p => `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('')}</div>
+      <div class="letter-actions" id="letterActions"></div>
+    </div>
+  `, 'warm');
+  s.classList.add('letter-scene-root');
+  const letterBox = s.querySelector('.letter');
+  for (const p of s.querySelectorAll('.letter .l')) {
     p.classList.add('on');
-    await sleep(900 + p.textContent.length * 35);
+    await sleep(700);
   }
-  await sleep(800); await btn(s, 'Seguir');
+  await sleep(500);
+  const actions = $('#letterActions');
+  await new Promise(res => {
+    const b = document.createElement('button');
+    b.className = 'btn on';
+    b.textContent = 'Seguir';
+    b.onclick = () => { b.disabled = true; res(); };
+    actions.append(b);
+  });
 }
 async function fakeEnd() {
   await go(`<p class="l on">${esc(T.fakeEnd[0])}</p>`, 'night'); await sleep(3200);

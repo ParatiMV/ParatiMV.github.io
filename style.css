@@ -72,6 +72,24 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 .secret-pop { min-height: 3.2rem; width: min(560px, 94vw); display: grid; place-items: center; font-size: 1.2rem; opacity: 0; transform: translateY(7px); transition: opacity .5s ease, transform .5s ease; }
 .secret-pop.on { opacity: 1; transform: none; }
 
+
+.egg-blanks { width: min(560px, 94vw); display: grid; grid-template-columns: repeat(2, 1fr); gap: .9rem; }
+.egg-blank { min-height: 72px; border: 1px solid rgba(255,255,255,.5); border-radius: 18px; background: rgba(255,255,255,.92); box-shadow: 0 10px 35px rgba(0,0,0,.18); cursor: pointer; transition: transform .35s ease, opacity .35s ease, border-color .35s ease; }
+.egg-blank:active { transform: scale(.97); }
+.egg-blank.active { border-color: var(--warm); box-shadow: 0 0 0 2px rgba(240,185,133,.16), 0 10px 35px rgba(0,0,0,.18); }
+.egg-dialog { width: min(560px, 94vw); max-height: min(48dvh, 420px); overflow: auto; opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .55s ease, transform .55s ease; scrollbar-width: none; }
+.egg-dialog.on { opacity: 1; transform: none; pointer-events: auto; }
+.egg-dialog-inner { border: 1px solid rgba(255,255,255,.14); border-radius: 20px; padding: 1rem; background: rgba(255,255,255,.045); text-align: left; }
+.egg-date { display: block; font: .8rem var(--sans); opacity: .5; margin-bottom: .75rem; }
+.egg-chat { display: grid; gap: .55rem; }
+.egg-msg { display: grid; gap: .12rem; padding: .65rem .75rem; border-radius: 13px; background: rgba(255,255,255,.055); }
+.egg-who { font: 600 .72rem var(--sans); color: var(--warm); }
+.egg-text { font: 1rem/1.4 var(--sans); }
+.letter-scene-root { justify-content: flex-start; gap: 0; padding-top: calc(env(safe-area-inset-top) + 1.2rem); padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
+.letter-scene { width: min(620px, 100%); height: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: .75rem; }
+.letter { width: 100%; flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; padding: .5rem .35rem 1rem; scrollbar-width: none; text-align: left; }
+.letter p { font-size: clamp(1.15rem, 4.8vw, 1.4rem); line-height: 1.65; max-width: 34ch; margin-inline: auto; }
+.letter-actions { flex: none; min-height: 52px; display: grid; place-items: center; padding-bottom: .1rem; }
 .photo { margin: 0; width: min(300px, 78vw); aspect-ratio: 3/4; border-radius: 18px; overflow: hidden; background: rgba(255,255,255,.06);
   opacity: 0; filter: blur(24px) brightness(.4); transform: scale(1.08); transition: opacity 2.4s ease, filter 2.8s ease, transform 3.2s ease; }
 .photo.on { opacity: 1; filter: none; transform: none; }
@@ -98,6 +116,8 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 @media (max-width: 520px) {
   .scene { gap: .9rem; padding-left: 1.2rem; padding-right: 1.2rem; }
   .memory-grid { gap: .55rem; }
+  .egg-blanks { gap: .65rem; }
+  .egg-blank { min-height: 62px; border-radius: 15px; }
   .memory-card { min-height: 82px; border-radius: 17px; }
   .memory-emoji { font-size: 1.75rem; }
   .art-scene { gap: .65rem; padding-top: calc(env(safe-area-inset-top) + .8rem); }
