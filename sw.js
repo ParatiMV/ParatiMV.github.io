@@ -1,4 +1,4 @@
-const V = 'regalo-v7';
+const V = 'regalo-v8';
 const SHELL = ['./', 'index.html', 'style.css', 'script.js', 'config.js', 'manifest.json',
   'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png', 'assets/artist.jpg'];
 self.addEventListener('install', e => e.waitUntil(

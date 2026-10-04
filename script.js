@@ -62,9 +62,9 @@ async function almost() {      // Nunca desbloquea: solo vuelve a comprobar.
   reveal(s, 1200); $('#back').onclick = install;
 }
 
-// --- Experiencia ---
+// --- Entrada y archivo de cumpleaños ---
 async function password() {
-  const s = await go(`${lines(T.gate)}<div class="pw l"><div class="pw-field"><input id="pw" type="password" autocomplete="off" autocapitalize="off" aria-label="Contraseña" placeholder="Contraseña"><button class="pw-eye" id="pwEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button></div><button class="btn on" id="ok">Entrar</button></div><p class="err" id="err"></p>`, 'warm');
+  const s = await go(`${lines(T.gate)}<div class="pw l"><input id="pw" type="password" autocomplete="off" autocapitalize="off" aria-label="Contraseña" placeholder="Contraseña"><div class="pw-actions"><button class="btn pw-enter on" id="ok">Entrar</button><button class="pw-eye" id="pwEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button></div></div><p class="err" id="err"></p>`, 'warm');
   reveal(s, 1300);
   const i = $('#pw'), eye = $('#pwEye');
   eye.onclick = () => {
@@ -85,62 +85,127 @@ async function password() {
   });
 }
 
-async function intro() {
-  const s = await go(`
-    <p class="l kick">15 años, la criatura.</p>
-    <p class="l">Hoy te toca recibir tu regalito.</p>
-    <p class="small l">Y ahora sí, empieza.</p>
-  `, 'rose');
-  await reveal(s, 1400);
-  await sleep(900);
-  await btn(s, 'Seguir');
-}
+const YEARS = Array.from({ length: 20 }, (_, i) => 2026 + i);
+let pageHistory = [], historyIndex = 0, currentPage = 0, pageNav = null;
+const STORY_PAGES = 6; // 2026: intro, carta, artista, aviso, arte, final
 
-async function letter() {
-  const paras = CONFIG.personalMessage.trim().split(/\n\s*\n/);
-  const s = await go(`
-    <div class="letter-scene">
-      <div class="letter">${paras.map(p => `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('')}</div>
-      <div class="letter-actions" id="letterActions"></div>
-    </div>
-  `, 'warm');
-  s.classList.add('letter-scene-root');
-  for (const p of s.querySelectorAll('.letter .l')) {
-    p.classList.add('on');
-    await sleep(700);
-  }
-  await sleep(500);
-  const actions = $('#letterActions');
-  await new Promise(res => {
-    const b = document.createElement('button');
-    b.className = 'btn on';
-    b.textContent = 'Seguir';
-    b.onclick = () => { b.disabled = true; res(); };
-    actions.append(b);
+async function yearHub() {
+  const cards = YEARS.map(year => year === 2026
+    ? `<button class="year-card complete" data-year="${year}"><span class="year-number">${year}</span><span class="year-status">Completado</span></button>`
+    : `<button class="year-card upcoming" data-year="${year}"><span class="year-number">${year}</span><span class="year-status">Próximamente</span></button>`).join('');
+  const s = await go(`<p class="l kick">Para ti, cada año.</p><h1 class="l archive-title">Cumpleaños</h1><p class="small l">Un capítulo por cada vuelta al sol.</p><div class="year-grid l">${cards}</div>`, 'night');
+  await reveal(s, 650);
+  s.querySelectorAll('.year-card').forEach(card => card.onclick = () => {
+    const year = Number(card.dataset.year);
+    if (year === 2026) startJourney();
+    else upcomingYear(year);
   });
 }
 
-async function artist() {
-  const s = await go(`<h1 class="l">${esc(T.artistTitle)}</h1><figure class="photo" id="ph"><img alt="" src="${esc(CONFIG.artistImage)}"></figure><p class="small l artist-tip">Mantén pulsada la foto para guardarla.</p>`, 'night');
-  s.querySelector('img').onerror = e => { e.target.replaceWith(Object.assign(document.createElement('p'), { className: 'small', textContent: 'Falta ' + CONFIG.artistImage })); };
-  s.querySelector('h1').classList.add('on');
-  await sleep(2600);
-  $('#ph').classList.add('on');
-  await sleep(3600);
-  const tip = s.querySelector('.artist-tip');
-  tip.classList.add('on');
-  await btn(s, 'Siguiente');
+async function upcomingYear(year) {
+  const s = await go(`<p class="l kick">${year}</p><h1 class="l archive-title">Próximamente</h1><p class="l">Este capítulo todavía no está escrito.</p><p class="small l">Cuando llegue su cumpleaños, tendrá su propio recuerdo aquí.</p>`, 'night');
+  await reveal(s, 900);
+  await btn(s, 'Volver al archivo').then(yearHub);
 }
 
-async function art() {
-  const guard = await go(`
+function makePageNav() {
+  if (pageNav) return pageNav;
+  pageNav = document.createElement('nav');
+  pageNav.className = 'page-nav';
+  pageNav.setAttribute('aria-label', 'Navegación de páginas');
+  pageNav.innerHTML = '<button class="page-arrow" id="pageBack" aria-label="Página anterior">‹</button><span class="page-count" id="pageCount">01 / 06</span><button class="page-arrow" id="pageForward" aria-label="Volver a una página visitada">›</button>';
+  document.body.append(pageNav);
+  $('#pageBack').onclick = () => { if (historyIndex > 0) { historyIndex--; currentPage = pageHistory[historyIndex]; renderPage(currentPage); } };
+  $('#pageForward').onclick = () => { if (historyIndex < pageHistory.length - 1) { historyIndex++; currentPage = pageHistory[historyIndex]; renderPage(currentPage); } };
+  return pageNav;
+}
+function updatePageNav(show) {
+  const nav = makePageNav();
+  nav.hidden = !show;
+  if (!show) return;
+  $('#pageCount').textContent = `${String(currentPage + 1).padStart(2, '0')} / ${String(STORY_PAGES).padStart(2, '0')}`;
+  $('#pageBack').disabled = historyIndex <= 0;
+  $('#pageForward').disabled = historyIndex >= pageHistory.length - 1;
+}
+function goNextPage() {
+  const next = currentPage + 1;
+  if (next >= STORY_PAGES) return;
+  if (historyIndex < pageHistory.length - 1 && pageHistory[historyIndex + 1] === next) historyIndex++;
+  else { pageHistory = pageHistory.slice(0, historyIndex + 1); pageHistory.push(next); historyIndex++; }
+  currentPage = next;
+  renderPage(currentPage);
+}
+function startJourney() {
+  pageHistory = [0]; historyIndex = 0; currentPage = 0;
+  renderPage(0);
+}
+
+async function renderPage(index) {
+  currentPage = index;
+  const showNav = index < 4; // El arte y el final quedan libres de controles para no tocar su composición.
+  updatePageNav(showNav);
+  if (index === 0) return renderIntro();
+  if (index === 1) return renderLetter();
+  if (index === 2) return renderArtist();
+  if (index === 3) return renderGuard();
+  if (index === 4) return renderArt();
+  return renderEnd();
+}
+
+async function renderIntro() {
+  const s = await go(`
+    <p class="l kick">15 años, la criatura.</p>
+    <p class="l">Hoy te toca recibir tu regalito.</p>
+    <p class="small l">Cuando estés lista, dale a empezar.</p>
+  `, 'rose');
+  s.classList.add('has-page-nav');
+  await reveal(s, 1400);
+  await sleep(500);
+  await btn(s, 'Empezar');
+  goNextPage();
+}
+
+async function renderLetter() {
+  const paras = CONFIG.personalMessage.trim().split(/\n\s*\n/);
+  const s = await go(`
+    <div class="letter-scene">
+      <p class="l heart-line">Y, desde el fondo de mi corazón…</p>
+      <div class="letter">${paras.map(p => `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('')}</div>
+      <div class="letter-actions"><button class="btn on" id="letterNext">Seguir</button></div>
+    </div>
+  `, 'warm');
+  s.classList.add('letter-scene-root', 'has-page-nav');
+  for (const p of s.querySelectorAll('.heart-line, .letter .l')) { p.classList.add('on'); await sleep(700); }
+  $('#letterNext').onclick = goNextPage;
+}
+
+async function renderArtist() {
+  const s = await go(`<h1 class="l">${esc(T.artistTitle)}</h1><figure class="photo" id="ph"><img alt="" src="${esc(CONFIG.artistImage)}"></figure><p class="small l artist-tip">Mantén pulsada la foto para guardarla.</p>`, 'night');
+  s.classList.add('has-page-nav');
+  s.querySelector('img').onerror = e => { e.target.replaceWith(Object.assign(document.createElement('p'), { className: 'small', textContent: 'Falta ' + CONFIG.artistImage })); };
+  s.querySelector('h1').classList.add('on');
+  await sleep(1000);
+  $('#ph').classList.add('on');
+  await sleep(1200);
+  s.querySelector('.artist-tip').classList.add('on');
+  await btn(s, 'Siguiente');
+  goNextPage();
+}
+
+async function renderGuard() {
+  const s = await go(`
     <p class="l kick">Antes de seguir…</p>
     <p class="l">Asegúrate de que no haya nadie mirando.</p>
     <p class="small l">Lo que viene ahora es solo para ti.</p>
   `, 'black');
-  await reveal(guard, 1200);
-  await btn(guard, 'Estoy a solas');
+  s.classList.add('has-page-nav');
+  await reveal(s, 1200);
+  await btn(s, 'Estoy a solas');
+  goNextPage();
+}
 
+// EL ARTE: se conserva la composición, proporción y controles del vídeo aprobados.
+async function renderArt() {
   const s = await go(`<h1 class="l">${esc(T.artTitle)}</h1><div class="vid" id="vid"><video playsinline preload="metadata" src="${esc(CONFIG.finalVideo)}"></video><div class="play" id="play">▶</div></div><div class="art-actions"><button class="btn" id="lastDoor">Y por último...</button></div>`, 'black');
   s.classList.add('art-scene');
   $('#music').hidden = true; window.bgAudio?.pause();
@@ -158,25 +223,22 @@ async function art() {
   v.onplay = () => play.classList.add('gone');
   v.onclick = () => v.paused ? v.play().catch(() => {}) : v.pause();
   await new Promise(res => v.onended = res);
-
   await sleep(500);
   lastDoor.disabled = false;
   requestAnimationFrame(() => lastDoor.classList.add('on'));
   await new Promise(res => lastDoor.onclick = () => { lastDoor.disabled = true; res(); });
+  goNextPage();
 }
 
-async function theEnd() {
+async function renderEnd() {
+  updatePageNav(false);
   await go(`<h1 class="final l on">${esc(T.final)}</h1>`, 'warm');
 }
 
 async function story() {
   setupMusic();
   await password();
-  await intro();
-  await letter();
-  await artist();
-  await art();
-  await theEnd();
+  await yearHub();
 }
 
 function setupMusic() {
