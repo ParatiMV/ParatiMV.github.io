@@ -84,13 +84,10 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 
 /* Contraseña */
 .pw-field { position: relative; width: 100%; }
-.pw-field input { width: 100%; padding-right: 3.5rem; }
-.pw-eye { position: absolute; right: .7rem; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: transparent; cursor: pointer; color: var(--text); opacity: .62; display: grid; place-items: center; }
-.pw-eye::before { content: ''; width: 19px; height: 12px; border: 1.7px solid currentColor; border-radius: 70% 20%; transform: rotate(45deg) scaleY(.45); transition: transform .25s ease, opacity .25s ease; }
-.pw-eye.open::before { transform: rotate(45deg) scaleY(1); }
-.pw-eye::after { content: ''; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: currentColor; transition: transform .25s ease, opacity .25s ease; }
-.pw-eye.open::after { transform: scale(.55); }
-.pw-eye:active { opacity: 1; }
+.pw-field input { width: 100%; padding-right: 0; }
+.pw-eye { position: absolute; right: .55rem; top: 50%; transform: translateY(-50%); min-width: 68px; height: 34px; padding: 0 .65rem; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(255,255,255,.06); cursor: pointer; color: var(--text); opacity: .72; display: grid; place-items: center; font: .78rem var(--sans); letter-spacing: .04em; transition: opacity .2s ease, background .2s ease, border-color .2s ease; }
+.pw-eye:hover, .pw-eye:focus-visible { opacity: 1; background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28); outline: none; }
+.pw-eye:active { transform: translateY(-50%) scale(.97); }
 
 /* Carta: lectura normal, con el botón separado del texto. */
 .letter-scene-root { justify-content: center; gap: .8rem; padding-top: calc(env(safe-area-inset-top) + 1.1rem); padding-bottom: calc(env(safe-area-inset-bottom) + 1.1rem); }

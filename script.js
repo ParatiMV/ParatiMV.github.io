@@ -40,7 +40,7 @@ addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e;
 addEventListener('appinstalled', () => { if (!standalone()) almost(); });
 
 const STEPS = {
-  ios: ['Abre esta página en <b>Safari</b> y dale click a <b>las tres rayas</b>.', 'Elige <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>.', 'Click en <b>Añadir</b>.', 'Cierra Safari y abre la app desde el <b>nuevo icono</b>.'],
+  ios: ['Abre esta página en <b>Safari</b> y pulsa <b>Compartir</b> (el cuadrado con la flecha ↑).', 'Elige <b>Añadir a pantalla de inicio</b>.', 'Pulsa <b>Añadir</b>.', 'Cierra Safari y abre la app desde el <b>nuevo icono</b>.'],
   android: ['Si aparece, pulsa <b>Instalar</b> aquí abajo.', 'Si no, abre el menú ⋮ de Chrome y elige <b>Instalar aplicación</b> o <b>Añadir a pantalla de inicio</b>.', 'Confirma la instalación.', 'Abre la app desde el <b>nuevo icono</b>.'],
   other: ['Ábrela desde el móvil: es ahí donde tiene sentido 💞', 'En el navegador: menú → <b>Instalar aplicación</b> / <b>Añadir a pantalla de inicio</b>.', 'Abre la app desde el <b>nuevo icono</b>.']
 };
@@ -64,13 +64,13 @@ async function almost() {      // Nunca desbloquea: solo vuelve a comprobar.
 
 // --- Experiencia ---
 async function password() {
-  const s = await go(`${lines(T.gate)}<div class="pw l"><div class="pw-field"><input id="pw" type="password" autocomplete="off" autocapitalize="off" aria-label="Contraseña" placeholder="Contraseña"><button class="pw-eye" id="pwEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false">◉</button></div><button class="btn on" id="ok">Entrar</button></div><p class="err" id="err"></p>`, 'warm');
+  const s = await go(`${lines(T.gate)}<div class="pw l"><div class="pw-field"><input id="pw" type="password" autocomplete="off" autocapitalize="off" aria-label="Contraseña" placeholder="Contraseña"><button class="pw-eye" id="pwEye" type="button" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button></div><button class="btn on" id="ok">Entrar</button></div><p class="err" id="err"></p>`, 'warm');
   reveal(s, 1300);
   const i = $('#pw'), eye = $('#pwEye');
   eye.onclick = () => {
     const visible = i.type === 'text';
     i.type = visible ? 'password' : 'text';
-    eye.textContent = visible ? '◉' : '◉';
+    eye.textContent = visible ? 'Mostrar' : 'Ocultar';
     eye.classList.toggle('open', !visible);
     eye.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
     eye.setAttribute('aria-pressed', String(!visible));
@@ -87,9 +87,9 @@ async function password() {
 
 async function intro() {
   const s = await go(`
-    <p class="l kick">Feliz cumpleaños, Carmen.</p>
-    <p class="l">15 años.</p>
-    <p class="small l">Preparé esto para ti.</p>
+    <p class="l kick">15 años, la criatura.</p>
+    <p class="l">Hoy te toca recibir tu regalito.</p>
+    <p class="small l">Y ahora sí, empieza.</p>
   `, 'rose');
   await reveal(s, 1400);
   await sleep(900);
