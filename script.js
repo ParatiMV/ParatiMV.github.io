@@ -40,7 +40,7 @@ addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e;
 addEventListener('appinstalled', () => { if (!standalone()) almost(); });
 
 const STEPS = {
-  ios: ['Abre esta página en <b>Safari</b> y pulsa <b>Compartir</b> (el cuadrado con la flecha ↑).', 'Elige <b>Añadir a pantalla de inicio</b>.', 'Pulsa <b>Añadir</b>.', 'Cierra Safari y abre la app desde el <b>nuevo icono</b>.'],
+  ios: ['Abre esta página en <b>Safari</b> y dale click a <b>las tres rayas</b>.', 'Elige <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>.', 'Click en <b>Añadir</b>.', 'Cierra Safari y abre la app desde el <b>nuevo icono</b>.'],
   android: ['Si aparece, pulsa <b>Instalar</b> aquí abajo.', 'Si no, abre el menú ⋮ de Chrome y elige <b>Instalar aplicación</b> o <b>Añadir a pantalla de inicio</b>.', 'Confirma la instalación.', 'Abre la app desde el <b>nuevo icono</b>.'],
   other: ['Ábrela desde el móvil: es ahí donde tiene sentido 💞', 'En el navegador: menú → <b>Instalar aplicación</b> / <b>Añadir a pantalla de inicio</b>.', 'Abre la app desde el <b>nuevo icono</b>.']
 };
