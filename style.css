@@ -72,78 +72,56 @@ h1 { margin: 0; font-weight: 400; font-size: clamp(2rem, 9vw, 3.4rem); letter-sp
 .letter::-webkit-scrollbar { display: none; }
 .letter p { font-size: clamp(1.15rem, 4.8vw, 1.4rem); line-height: 1.65; max-width: 46ch; }
 
-/* El vídeo se adapta a su proporción real, sin dejar una caja enorme alrededor */
-.vid { position: relative; width: min(92vw, 720px); height: min(72dvh, 720px); border-radius: 18px; overflow: hidden; background: #000;
-  display: grid; place-items: center;
-  opacity: 0; transform: scale(.97); transition: opacity 1.5s ease, transform 1.8s ease; }
-.vid.on { opacity: 1; transform: none; }
-.vid video { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; display: block; border-radius: 12px; }
-.play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 3.4rem; background: rgba(0,0,0,.35); transition: opacity .6s; cursor: pointer; }
-.play.gone { opacity: 0; pointer-events: none; }
-
 .photo { margin: 0; width: min(300px, 78vw); aspect-ratio: 3/4; border-radius: 18px; overflow: hidden; background: rgba(255,255,255,.06);
   opacity: 0; filter: blur(24px) brightness(.4); transform: scale(1.08); transition: opacity 2.4s ease, filter 2.8s ease, transform 3.2s ease; }
 .photo.on { opacity: 1; filter: none; transform: none; }
 .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .final { font-size: clamp(2.2rem, 10vw, 3.8rem); letter-spacing: .02em; line-height: 1.25; max-width: 12ch; }
 
-#music { position: fixed; top: calc(env(safe-area-inset-top) + .8rem); right: .8rem; z-index: 5; width: 44px; height: 44px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: var(--text); font-size: 1.1rem; opacity: .6; }
-#music.off { text-decoration: line-through; opacity: .35; }
-
-@media (max-width: 520px) {
-  .scene { gap: .9rem; padding-left: 1.2rem; padding-right: 1.2rem; }
-  .vid { width: 92vw; height: min(68dvh, 680px); border-radius: 14px; }
-  .btn-slot { bottom: calc(env(safe-area-inset-bottom) + 1.2rem); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition-duration: .01s !important; }
 }
 
-/* Recuerdos y conversaciones: sin cápsulas ni chat pegado al botón de música */
-.memory-grid { width: min(520px, 100%); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1.1rem; margin-top: .9rem; }
-.memory-card { min-height: 86px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(255,255,255,.045); color: var(--text); display: grid; place-items: center; gap: .2rem; padding: .8rem; cursor: pointer; font: 1rem var(--sans); transition: transform .3s ease, background .3s ease, border-color .3s ease; }
-.memory-card:active { transform: scale(.97); background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.3); }
-.memory-emoji { font-size: 1.8rem; }
-.memory-detail { position: fixed; inset: 0; z-index: 7; display: grid; place-items: center; padding: 5.8rem 1.3rem 2rem; background: rgba(5,7,14,.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); opacity: 0; pointer-events: none; transition: opacity .45s ease; }
-.memory-detail.on { opacity: 1; pointer-events: auto; }
-.memory-detail-inner { position: relative; width: min(520px, 100%); padding: 2rem 1.4rem; border: 1px solid rgba(255,255,255,.16); border-radius: 22px; background: rgba(14,17,29,.94); text-align: center; transform: translateY(14px); transition: transform .5s ease; }
-.memory-detail.on .memory-detail-inner { transform: none; }
-.memory-close, .chat-close { position: absolute; top: .65rem; right: .8rem; width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,.07); color: var(--text); font-size: 1.5rem; cursor: pointer; }
-.memory-detail-emoji { font-size: 2.3rem; }
-.memory-detail-title { margin-top: .4rem; font: 600 1.25rem var(--sans); }
-.memory-detail-reveal { margin-top: 1rem; font-size: 1.5rem; color: var(--warm); }
-.memory-detail-text { margin: .8rem auto 0; max-width: 42ch; font: 1rem/1.5 var(--sans); opacity: .76; }
+/* Contraseña */
+.pw-field { position: relative; width: 100%; }
+.pw-field input { width: 100%; padding-right: 3.5rem; }
+.pw-eye { position: absolute; right: .7rem; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: transparent; cursor: pointer; color: var(--text); opacity: .62; display: grid; place-items: center; }
+.pw-eye::before { content: ''; width: 19px; height: 12px; border: 1.7px solid currentColor; border-radius: 70% 20%; transform: rotate(45deg) scaleY(.45); transition: transform .25s ease, opacity .25s ease; }
+.pw-eye.open::before { transform: rotate(45deg) scaleY(1); }
+.pw-eye::after { content: ''; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: currentColor; transition: transform .25s ease, opacity .25s ease; }
+.pw-eye.open::after { transform: scale(.55); }
+.pw-eye:active { opacity: 1; }
 
-.moment-list { width: min(500px, 100%); display: grid; gap: .15rem; margin-top: 1rem; padding-top: 1.8rem; }
-.moment-link { display: grid; grid-template-columns: 7.5rem 1fr; align-items: center; gap: 1rem; width: 100%; min-height: 64px; padding: .65rem .15rem; border: 0; border-bottom: 1px solid rgba(255,255,255,.14); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
-.moment-link span { font: .72rem var(--sans); letter-spacing: .12em; opacity: .48; }
-.moment-link strong { font: 1.15rem var(--serif); font-weight: 400; }
-.moment-link:active { opacity: .65; }
-.chat-sheet { position: fixed; inset: 0; z-index: 7; display: flex; align-items: flex-start; justify-content: center; padding: 6rem 1.2rem 1.5rem; background: rgba(5,7,14,.68); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); opacity: 0; pointer-events: none; transition: opacity .45s ease; }
-.chat-sheet.on { opacity: 1; pointer-events: auto; }
-.chat-sheet-inner { position: relative; width: min(520px, 100%); max-height: calc(100dvh - 7.5rem); overflow-y: auto; padding: 1.4rem 1rem 1.3rem; border: 1px solid rgba(255,255,255,.16); border-radius: 22px; background: rgba(12,15,26,.96); transform: translateY(16px); transition: transform .5s ease; scrollbar-width: none; }
-.chat-sheet-inner::-webkit-scrollbar { display: none; }
-.chat-sheet.on .chat-sheet-inner { transform: none; }
-.chat-date { font: .72rem var(--sans); letter-spacing: .13em; opacity: .45; text-align: center; }
-.chat-title { margin: .35rem 0 1.15rem; text-align: center; font-size: 1.25rem; }
-.chat-lines { display: grid; gap: .65rem; }
-.chat-line { max-width: 88%; display: grid; gap: .2rem; padding: .7rem .85rem; border-radius: 15px; font: .98rem/1.4 var(--sans); }
-.chat-line.carmen { justify-self: start; background: rgba(255,255,255,.075); }
-.chat-line.anas { justify-self: end; background: rgba(232,163,184,.13); }
-.chat-who { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; opacity: .5; }
-.chat-text { opacity: .95; }
+/* Carta: lectura normal, con el botón separado del texto. */
+.letter-scene-root { justify-content: center; gap: .8rem; padding-top: calc(env(safe-area-inset-top) + 1.1rem); padding-bottom: calc(env(safe-area-inset-bottom) + 1.1rem); }
+.letter-scene { width: min(620px, 100%); min-height: 0; display: flex; flex-direction: column; align-items: center; gap: .75rem; }
+.letter-scene-root .letter { width: 100%; max-height: 62dvh; overflow-y: auto; padding: .35rem .35rem .8rem; scrollbar-width: none; }
+.letter-scene-root .letter::-webkit-scrollbar { display: none; }
+.letter-scene-root .letter-actions { flex: none; min-height: 52px; display: grid; place-items: center; }
+.letter p { font-size: clamp(1.15rem, 4.8vw, 1.4rem); line-height: 1.65; max-width: 46ch; }
 
-/* La carta vuelve a tener una zona de lectura y el botón queda fuera del texto. */
-.letter-scene-root { justify-content: flex-start; gap: 0; padding-top: calc(env(safe-area-inset-top) + 1.2rem); padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
-.letter-scene-root .letter { flex: 1 1 auto; min-height: 0; max-height: none; width: min(620px, 100%); overflow-y: auto; padding: .5rem .35rem 1rem; }
-.letter-scene-root .letter-actions { flex: none; min-height: 52px; display: grid; place-items: center; padding-bottom: .1rem; }
+/* EL ARTISTA */
+.artist-tip { margin-top: -.1rem; }
+
+/* EL ARTE — no tocar: proporción y presentación aprobadas. */
+.art-scene { justify-content: flex-start; gap: .8rem; padding-top: calc(env(safe-area-inset-top) + 1.1rem); padding-bottom: calc(env(safe-area-inset-bottom) + 1.2rem); }
+.art-scene h1 { flex: none; }
+.vid { position: relative; height: min(70dvh, 680px); width: auto; max-width: 94vw; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden; background: #000; display: grid; place-items: center; opacity: 0; transform: scale(.985); transition: opacity 1.4s ease, transform 1.7s ease; flex: none; }
+.vid.on { opacity: 1; transform: none; }
+.vid video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+.play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 3.4rem; background: rgba(0,0,0,.35); transition: opacity .6s; cursor: pointer; }
+.play.gone { opacity: 0; pointer-events: none; }
+.art-actions { min-height: 52px; margin-top: .35rem; padding-top: .2rem; display: grid; place-items: center; flex: none; }
+.art-actions .btn { opacity: 0; transform: translateY(8px); transition: opacity .8s ease, transform .8s ease, background .25s ease; }
+.art-actions .btn.on { opacity: 1; transform: none; }
+
+#music { position: fixed; top: calc(env(safe-area-inset-top) + .8rem); right: .8rem; z-index: 5; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: var(--text); font-size: 1.1rem; opacity: .6; }
+#music.off { text-decoration: line-through; opacity: .35; }
+
 @media (max-width: 520px) {
-  .memory-grid { gap: .55rem; }
-  .memory-card { min-height: 78px; border-radius: 15px; }
-  .moment-list { padding-top: 1.4rem; }
-  .moment-link { grid-template-columns: 6.6rem 1fr; }
-  .chat-sheet { padding-top: 5.6rem; }
-  .chat-sheet-inner { max-height: calc(100dvh - 6.8rem); }
+  .scene { gap: .9rem; padding-left: 1.2rem; padding-right: 1.2rem; }
+  .art-scene { gap: .65rem; padding-top: calc(env(safe-area-inset-top) + .8rem); }
+  .vid { height: min(70dvh, 620px); width: auto; max-width: 94vw; border-radius: 14px; }
+  .art-actions { margin-top: .45rem; }
+  .letter-scene-root .letter { max-height: 62dvh; }
 }
