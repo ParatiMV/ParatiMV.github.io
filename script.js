@@ -93,7 +93,7 @@ async function yearHub() {
   const cards = YEARS.map(year => year === 2026
     ? `<button class="year-card complete" data-year="${year}"><span class="year-number">${year}</span><span class="year-status">Completado</span></button>`
     : `<button class="year-card upcoming" data-year="${year}"><span class="year-number">${year}</span><span class="year-status">Próximamente</span></button>`).join('');
-  const s = await go(`<p class="l kick">Para ti, cada año.</p><h1 class="l archive-title">Cumpleaños</h1><p class="small l">Un capítulo por cada vuelta al sol.</p><div class="year-grid l">${cards}</div>`, 'night');
+  const s = await go(`<p class="l kick">Para ti, cada año.</p><h1 class="l archive-title">Tus cumpleaños</h1><p class="small l">Un capítulo por cada vuelta al sol.</p><div class="year-grid l">${cards}</div>`, 'night');
   await reveal(s, 650);
   s.querySelectorAll('.year-card').forEach(card => card.onclick = () => {
     const year = Number(card.dataset.year);
@@ -103,7 +103,7 @@ async function yearHub() {
 }
 
 async function upcomingYear(year) {
-  const s = await go(`<p class="l kick">${year}</p><h1 class="l archive-title">Próximamente</h1><p class="l">Este capítulo todavía no está escrito.</p><p class="small l">Cuando llegue su cumpleaños, tendrá su propio recuerdo aquí.</p>`, 'night');
+  const s = await go(`<p class="l kick">${year}</p><h1 class="l archive-title">Próximamente</h1><p class="l">Este capítulo todavía no está escrito.</p><p class="small l">Cuando llegue tu cumpleaños, aquí tendrás tu propio recuerdo.</p>`, 'night');
   await reveal(s, 900);
   await btn(s, 'Volver al archivo').then(yearHub);
 }
@@ -142,8 +142,9 @@ function startJourney() {
 
 async function renderPage(index) {
   currentPage = index;
-  const showNav = index < 4; // El arte y el final quedan libres de controles para no tocar su composición.
-  updatePageNav(showNav);
+  // La navegación pertenece a toda la historia, incluso al vídeo y al final.
+  // La composición del vídeo no se modifica: la navegación es un elemento fijo independiente.
+  updatePageNav(true);
   if (index === 0) return renderIntro();
   if (index === 1) return renderLetter();
   if (index === 2) return renderArtist();
@@ -231,7 +232,7 @@ async function renderArt() {
 }
 
 async function renderEnd() {
-  updatePageNav(false);
+  updatePageNav(true);
   await go(`<h1 class="final l on">${esc(T.final)}</h1>`, 'warm');
 }
 
