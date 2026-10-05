@@ -6,7 +6,6 @@ for (const [k, v] of Object.entries(CONFIG.colors)) document.documentElement.sty
 
 // --- Detección de PWA instalada (standalone) ---
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-// Solo para probar en tu ordenador: http://localhost:8000/?dev
 const dev = ['localhost', '127.0.0.1'].includes(location.hostname) && location.search.includes('dev');
 const ua = navigator.userAgent;
 const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -229,16 +228,20 @@ const YEARS = [
   { year: 2029, age: 18, status: 'Próximamente' }
 ];
 
+let pageHistory = [];
+let historyIndex = 0;
+let currentPage = 0;
+let pageNav = null;
+
+const STORY_PAGES = 6;
+
+// --- Archivo ---
 async function yearHub() {
-  // Si se abre desde cualquier parte de la historia, el archivo no conserva
-  // la navegación de la historia actual.
   updatePageNav(false);
 
-  // Si venimos del vídeo, nos aseguramos de que no siga sonando.
-  const video = app.querySelector('video');
-  if (video) video.pause();
-
-  window.bgAudio?.pause();
+  // Abrir el archivo NO debe apagar la música.
+  $('#music').hidden = false;
+  window.startMusic?.();
 
   const cards = YEARS.map(({ year, age, status }) =>
     year === 2026
@@ -261,7 +264,9 @@ async function yearHub() {
   const s = await go(`
     <p class="l kick">Para ti, cada año.</p>
 
-    <h1 class="l archive-title">Tus cumpleaños</h1>
+    <h1 class="l archive-title">
+      Tus cumpleaños
+    </h1>
 
     <p class="small l">
       Un capítulo por cada vuelta al sol.
@@ -313,25 +318,14 @@ async function upcomingYear(year) {
   yearHub();
 }
 
-// --- Navegación de páginas ---
-let pageHistory = [];
-let historyIndex = 0;
-let currentPage = 0;
-let pageNav = null;
-
-const STORY_PAGES = 6;
-// 01 Intro
-// 02 Carta
-// 03 Artista
-// 04 Aviso
-// 05 Arte
-// 06 Final
-
+// --- Navegación ---
 function makePageNav() {
   if (pageNav) return pageNav;
 
   pageNav = document.createElement('nav');
+
   pageNav.className = 'page-nav';
+
   pageNav.setAttribute(
     'aria-label',
     'Navegación de páginas'
@@ -393,7 +387,8 @@ function updatePageNav(show) {
   $('#pageCount').textContent =
     `${String(currentPage + 1).padStart(2, '0')} / ${String(STORY_PAGES).padStart(2, '0')}`;
 
-  $('#pageBack').disabled = historyIndex <= 0;
+  $('#pageBack').disabled =
+    historyIndex <= 0;
 
   $('#pageForward').disabled =
     historyIndex >= pageHistory.length - 1;
@@ -418,6 +413,7 @@ function goNextPage() {
   }
 
   currentPage = next;
+
   renderPage(currentPage);
 }
 
@@ -432,11 +428,8 @@ function startJourney() {
 async function renderPage(index) {
   currentPage = index;
 
-  // La navegación pertenece a toda la historia,
-  // incluido el vídeo y el final.
   updatePageNav(true);
 
-  // El vídeo es la única página donde la música se detiene.
   if (index === 4) {
     $('#music').hidden = true;
     window.bgAudio?.pause();
@@ -526,7 +519,8 @@ async function renderLetter() {
     await sleep(700);
   }
 
-  $('#letterNext').onclick = goNextPage;
+  $('#letterNext').onclick =
+    goNextPage;
 }
 
 // --- Página 3 ---
@@ -536,7 +530,10 @@ async function renderArtist() {
       ${esc(T.artistTitle)}
     </h1>
 
-    <figure class="photo" id="ph">
+    <figure
+      class="photo"
+      id="ph"
+    >
       <img
         alt=""
         src="${esc(CONFIG.artistImage)}"
@@ -550,18 +547,20 @@ async function renderArtist() {
 
   s.classList.add('has-page-nav');
 
-  s.querySelector('img').onerror = e => {
-    e.target.replaceWith(
-      Object.assign(
-        document.createElement('p'),
-        {
-          className: 'small',
-          textContent:
-            'Falta ' + CONFIG.artistImage
-        }
-      )
-    );
-  };
+  s.querySelector('img').onerror =
+    e => {
+      e.target.replaceWith(
+        Object.assign(
+          document.createElement('p'),
+          {
+            className: 'small',
+            textContent:
+              'Falta ' +
+              CONFIG.artistImage
+          }
+        )
+      );
+    };
 
   s.querySelector('h1').classList.add('on');
 
@@ -571,7 +570,9 @@ async function renderArtist() {
 
   await sleep(1200);
 
-  s.querySelector('.artist-tip').classList.add('on');
+  s.querySelector(
+    '.artist-tip'
+  ).classList.add('on');
 
   await btn(s, 'Siguiente');
 
@@ -604,14 +605,17 @@ async function renderGuard() {
 }
 
 // --- Página 5 ---
-// EL ARTE: composición, proporción y controles del vídeo aprobados.
+// EL ARTE: no tocar la composición aprobada.
 async function renderArt() {
   const s = await go(`
     <h1 class="l">
       ${esc(T.artTitle)}
     </h1>
 
-    <div class="vid" id="vid">
+    <div
+      class="vid"
+      id="vid"
+    >
       <video
         playsinline
         preload="metadata"
@@ -644,11 +648,18 @@ async function renderArt() {
   $('#music').hidden = true;
   window.bgAudio?.pause();
 
-  const v = s.querySelector('video');
-  const play = $('#play');
-  const lastDoor = $('#lastDoor');
+  const v =
+    s.querySelector('video');
 
-  s.querySelector('h1').classList.add('on');
+  const play =
+    $('#play');
+
+  const lastDoor =
+    $('#lastDoor');
+
+  s.querySelector(
+    'h1'
+  ).classList.add('on');
 
   await sleep(1200);
 
@@ -659,13 +670,18 @@ async function renderArt() {
 
   v.onerror = () => {
     play.textContent =
-      'Falta ' + CONFIG.finalVideo;
+      'Falta ' +
+      CONFIG.finalVideo;
 
-    play.style.fontSize = '1rem';
+    play.style.fontSize =
+      '1rem';
   };
 
   v.onloadedmetadata = () => {
-    if (v.videoWidth && v.videoHeight) {
+    if (
+      v.videoWidth &&
+      v.videoHeight
+    ) {
       s.style.setProperty(
         '--video-native-ratio',
         `${v.videoWidth} / ${v.videoHeight}`
@@ -719,9 +735,16 @@ async function renderEnd() {
 
 // --- Botón del archivo ---
 function makeArchiveButton() {
-  if (document.getElementById('archive')) return;
+  if (
+    document.getElementById(
+      'archive'
+    )
+  ) return;
 
-  const b = document.createElement('button');
+  const b =
+    document.createElement(
+      'button'
+    );
 
   b.id = 'archive';
   b.type = 'button';
@@ -732,9 +755,11 @@ function makeArchiveButton() {
     'Tus cumpleaños'
   );
 
-  b.title = 'Tus cumpleaños';
+  b.title =
+    'Tus cumpleaños';
 
-  b.onclick = yearHub;
+  b.onclick =
+    yearHub;
 
   document.body.append(b);
 }
@@ -758,7 +783,8 @@ function setupMusic() {
     window.bgAudio =
       new Audio(CONFIG.music);
 
-  const b = $('#music');
+  const b =
+    $('#music');
 
   a.loop = true;
   a.volume = .35;
@@ -779,13 +805,15 @@ function setupMusic() {
 
   const stopMusic = () => {
     if (!a.paused) a.pause();
+
     b.classList.add('off');
   };
 
   document.addEventListener(
     'visibilitychange',
     () => {
-      if (document.hidden) stopMusic();
+      if (document.hidden)
+        stopMusic();
     }
   );
 
@@ -799,28 +827,44 @@ function setupMusic() {
     stopMusic
   );
 
-  window.stopMusic = stopMusic;
+  window.stopMusic =
+    stopMusic;
 
-  window.startMusic = () =>
-    a.play()
-      .then(() => b.classList.remove('off'))
-      .catch(() => {});
+  window.startMusic =
+    () =>
+      a.play()
+        .then(() =>
+          b.classList.remove(
+            'off'
+          )
+        )
+        .catch(() => {});
 }
 
 // --- Service Worker ---
-if ('serviceWorker' in navigator) {
+if (
+  'serviceWorker' in navigator
+) {
   navigator.serviceWorker
     .register('sw.js')
     .catch(() => {});
 }
 
 // --- Inicio ---
-addEventListener('load', async () => {
-  await sleep(900);
+addEventListener(
+  'load',
+  async () => {
+    await sleep(900);
 
-  $('#boot').classList.add('gone');
+    $('#boot')
+      .classList
+      .add('gone');
 
-  (standalone() || dev)
-    ? story()
-    : install();
-});
+    (
+      standalone() ||
+      dev
+    )
+      ? story()
+      : install();
+  }
+);
