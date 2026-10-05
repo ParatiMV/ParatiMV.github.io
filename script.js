@@ -6,7 +6,6 @@ for (const [k, v] of Object.entries(CONFIG.colors)) document.documentElement.sty
 
 // --- Detección de PWA instalada (standalone) ---
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-// Solo para probar en tu ordenador: http://localhost:8000/?dev
 const dev = ['localhost', '127.0.0.1'].includes(location.hostname) && location.search.includes('dev');
 const ua = navigator.userAgent;
 const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -14,23 +13,67 @@ const isAndroid = /Android/.test(ua);
 
 async function go(html, mood) {
   const cur = app.firstElementChild;
-  if (cur) { cur.classList.add('out'); await sleep(800); cur.remove(); }
+  if (cur) {
+    cur.classList.add('out');
+    await sleep(800);
+    cur.remove();
+  }
+
   if (mood) document.body.dataset.m = mood;
+
   const s = document.createElement('section');
-  s.className = 'scene'; s.innerHTML = html; app.append(s);
-  await sleep(40); s.classList.add('in'); return s;
+  s.className = 'scene';
+  s.innerHTML = html;
+  app.append(s);
+
+  await sleep(40);
+  s.classList.add('in');
+  return s;
 }
-const reveal = async (root, gap = 1500) => { for (const n of root.querySelectorAll('.l')) { n.classList.add('on'); await sleep(gap); } };
+
+const reveal = async (root, gap = 1500) => {
+  for (const n of root.querySelectorAll('.l')) {
+    n.classList.add('on');
+    await sleep(gap);
+  }
+};
+
 const btn = (root, label, cls = '') => new Promise(res => {
-  const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label;
-  b.onclick = () => { b.disabled = true; res(); }; root.append(b); requestAnimationFrame(() => b.classList.add('on'));
+  const wrap = document.createElement('div');
+  wrap.className = 'btn-slot';
+
+  const b = document.createElement('button');
+  b.className = 'btn ' + cls;
+  b.textContent = label;
+
+  b.onclick = () => {
+    b.disabled = true;
+    res();
+  };
+
+  wrap.append(b);
+  root.append(wrap);
+
+  requestAnimationFrame(() => b.classList.add('on'));
 });
-const lines = (arr, first) => arr.map((t, i) => `<p class="l ${i === 0 && first ? 'kick' : ''}">${esc(t)}</p>`).join('');
+
+const lines = (arr, first) =>
+  arr.map((t, i) =>
+    `<p class="l ${i === 0 && first ? 'kick' : ''}">${esc(t)}</p>`
+  ).join('');
 
 // --- Fuera de la PWA: instalación obligatoria ---
 let deferred = null;
-addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('#inst')?.removeAttribute('hidden'); });
-addEventListener('appinstalled', () => { if (!standalone()) almost(); });
+
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferred = e;
+  $('#inst')?.removeAttribute('hidden');
+});
+
+addEventListener('appinstalled', () => {
+  if (!standalone()) almost();
+});
 
 const STEPS = {
   ios: [
@@ -39,12 +82,14 @@ const STEPS = {
     'Click en <b>Añadir</b>.',
     'Cierra Safari y abre la app desde el <b>nuevo icono</b>.'
   ],
+
   android: [
     'Si aparece, pulsa <b>Instalar</b> aquí abajo.',
     'Si no, abre el menú ⋮ de Chrome y elige <b>Instalar aplicación</b> o <b>Añadir a pantalla de inicio</b>.',
     'Confirma la instalación.',
     'Abre la app desde el <b>nuevo icono</b>.'
   ],
+
   other: [
     'Ábrela desde el móvil: es ahí donde tiene sentido 💞',
     'En el navegador: menú → <b>Instalar aplicación</b> / <b>Añadir a pantalla de inicio</b>.',
@@ -54,10 +99,18 @@ const STEPS = {
 
 async function install() {
   const steps = STEPS[isIOS ? 'ios' : isAndroid ? 'android' : 'other'];
-  const s = await go(`<p class="l kick">${esc(T.installKicker)}</p>${lines(T.install)}
-    <ol class="steps l">${steps.map(x => `<li><span>${x}</span></li>`).join('')}</ol>
-    <button class="btn l" id="inst" hidden>Instalar</button>`, 'warm');
+
+  const s = await go(`
+    <p class="l kick">${esc(T.installKicker)}</p>
+    ${lines(T.install)}
+    <ol class="steps l">
+      ${steps.map(x => `<li><span>${x}</span></li>`).join('')}
+    </ol>
+    <button class="btn l" id="inst" hidden>Instalar</button>
+  `, 'warm');
+
   reveal(s, 1300);
+
   $('#inst').onclick = async () => {
     if (deferred) {
       deferred.prompt();
@@ -66,7 +119,9 @@ async function install() {
       $('#inst').hidden = true;
     }
   };
+
   if (deferred) $('#inst').hidden = false;
+
   await sleep(4500);
   await btn(s, 'Ya está instalada');
   almost();
@@ -74,408 +129,742 @@ async function install() {
 
 async function almost() {
   if (standalone()) return location.reload();
-  const s = await go(lines(T.almost, true) + '<button class="btn ghost on" id="back">Ver instrucciones otra vez</button>', 'night');
+
+  const s = await go(
+    lines(T.almost, true) +
+    '<button class="btn ghost on" id="back">Ver instrucciones otra vez</button>',
+    'night'
+  );
+
   reveal(s, 1200);
   $('#back').onclick = install;
 }
 
-// --- Experiencia ---
+// --- Entrada ---
 async function password() {
-  const s = await go(
-    `${lines(T.gate)}
+  const s = await go(`
+    ${lines(T.gate)}
+
     <div class="pw l">
-      <input id="pw" type="password" autocomplete="off" autocapitalize="off" aria-label="Contraseña" placeholder="Contraseña">
+      <input
+        id="pw"
+        type="password"
+        autocomplete="off"
+        autocapitalize="off"
+        aria-label="Contraseña"
+        placeholder="Contraseña"
+      >
+
       <div class="pw-actions">
-        <button class="btn on" id="ok">Entrar</button>
-        <button class="btn on ghost" id="show">Mostrar</button>
+        <button class="btn pw-enter on" id="ok">Entrar</button>
+
+        <button
+          class="pw-eye"
+          id="pwEye"
+          type="button"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          Mostrar
+        </button>
       </div>
     </div>
-    <p class="err" id="err"></p>`,
-    'warm'
-  );
+
+    <p class="err" id="err"></p>
+  `, 'warm');
 
   reveal(s, 1300);
 
   const i = $('#pw');
-  const show = $('#show');
+  const eye = $('#pwEye');
 
-  show.onclick = () => {
+  eye.onclick = () => {
     const visible = i.type === 'text';
+
     i.type = visible ? 'password' : 'text';
-    show.textContent = visible ? 'Mostrar' : 'Ocultar';
+    eye.textContent = visible ? 'Mostrar' : 'Ocultar';
+    eye.classList.toggle('open', !visible);
+    eye.setAttribute(
+      'aria-label',
+      visible ? 'Mostrar contraseña' : 'Ocultar contraseña'
+    );
+    eye.setAttribute(
+      'aria-pressed',
+      String(!visible)
+    );
   };
 
   await new Promise(res => {
     const check = () => {
-      if (i.value.trim().toLowerCase() === CONFIG.password.toLowerCase()) {
+      if (
+        i.value.trim().toLowerCase() ===
+        CONFIG.password.toLowerCase()
+      ) {
         window.startMusic?.();
         return res();
       }
 
-      $('#err').textContent = CONFIG.passwordHint || 'Esa no es.';
+      $('#err').textContent =
+        CONFIG.passwordHint || 'Esa no es.';
+
       i.classList.remove('shake');
       void i.offsetWidth;
       i.classList.add('shake');
     };
 
     $('#ok').onclick = check;
+
     i.onkeydown = e => {
       if (e.key === 'Enter') check();
     };
   });
 }
 
-async function intro() {
-  const s = await go(lines(T.intro), 'rose');
-  await reveal(s, 1700);
-  await sleep(1800);
-}
+// --- Archivo de cumpleaños ---
+const YEARS = [
+  { year: 2026, age: 15, status: 'Completado' },
+  { year: 2027, age: 16, status: 'Próximamente' },
+  { year: 2028, age: 17, status: 'Próximamente' },
+  { year: 2029, age: 18, status: 'Próximamente' }
+];
 
-async function universe() {
-  const U = CONFIG.universe, seen = new Set();
-  const s = await go(
-    `<p class="l kick">${esc(T.universe)}</p>
-    <div class="orbs">${U.map((u, i) => `<button class="orb" data-i="${i}" aria-label="${esc(u.text)}">${u.emoji}</button>`).join('')}</div>
-    <p class="orb-cap" id="cap">&nbsp;</p>`,
-    'rose'
-  );
+let pageHistory = [];
+let historyIndex = 0;
+let currentPage = 0;
+let pageNav = null;
 
-  reveal(s, 600);
+const STORY_PAGES = 6;
 
-  await new Promise(res => s.querySelectorAll('.orb').forEach(o => o.onclick = async () => {
-    const cap = $('#cap');
-    cap.classList.remove('on');
-    await sleep(250);
-    cap.textContent = U[o.dataset.i].text;
-    cap.classList.add('on');
-    o.classList.add('seen');
-    seen.add(o.dataset.i);
+// --- Archivo ---
+async function yearHub() {
+  updatePageNav(false);
 
-    if (seen.size === U.length) {
-      await sleep(1800);
-      res();
-    }
-  }));
-}
+  // Abrir el archivo NO debe apagar la música.
+  $('#music').hidden = false;
+  window.startMusic?.();
 
-async function eggs() {
-  const E = CONFIG.easterEggs;
-  let n = -1;
+  const cards = YEARS.map(({ year, age, status }) =>
+    year === 2026
+      ? `
+        <button class="year-card complete" data-year="${year}">
+          <span class="year-number">${year}</span>
+          <span class="year-age">${age} años</span>
+          <span class="year-status">${status}</span>
+        </button>
+      `
+      : `
+        <button class="year-card upcoming" data-year="${year}">
+          <span class="year-number">${year}</span>
+          <span class="year-age">${age} años</span>
+          <span class="year-status">${status}</span>
+        </button>
+      `
+  ).join('');
 
-  const s = await go(
-    `<p class="l kick">${esc(T.eggs)}</p>
-    <div class="card l" id="card" role="button" tabindex="0">Toca</div>`,
-    'blue'
-  );
+  const s = await go(`
+    <p class="l kick">Para ti, cada año.</p>
 
-  reveal(s, 1300);
+    <h1 class="l archive-title">
+      Tus cumpleaños
+    </h1>
 
-  const card = $('#card');
+    <p class="small l">
+      Un capítulo por cada vuelta al sol.
+    </p>
 
-  await new Promise(res => card.onclick = async () => {
-    if (n >= E.length) return;
+    <div class="year-grid l">
+      ${cards}
+    </div>
+  `, 'night');
 
-    card.classList.add('swap');
-    await sleep(350);
-    n++;
+  await reveal(s, 650);
 
-    if (n < E.length) {
-      card.innerHTML = `<span>${esc(E[n].phrase)}${E[n].note ? `<small>${esc(E[n].note)}</small>` : ''}</span>`;
-    }
+  s.querySelectorAll('.year-card').forEach(card => {
+    card.onclick = () => {
+      const year = Number(card.dataset.year);
 
-    card.classList.remove('swap');
-
-    if (n === E.length - 1) {
-      n = E.length;
-      await sleep(1500);
-      res();
-    }
+      if (year === 2026) {
+        startJourney();
+      } else {
+        upcomingYear(year);
+      }
+    };
   });
 }
 
-async function letter() {
-  const paras = CONFIG.personalMessage.trim().split(/\n\s*\n/);
+async function upcomingYear(year) {
+  const item = YEARS.find(x => x.year === year);
 
-  const s = await go(
-    `<div class="letter">
-      <p class="heart-line l on">Y, desde el fondo de mi corazón…</p>
-      ${paras.map(p => `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('')}
-    </div>`,
-    'warm'
-  );
+  const s = await go(`
+    <p class="l kick">${year}</p>
 
-  for (const p of s.querySelectorAll('.l:not(.heart-line)')) {
-    p.classList.add('on');
-    p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    await sleep(900 + p.textContent.length * 35);
-  }
+    <h1 class="l archive-title">
+      ${item.age} años
+    </h1>
 
-  await sleep(800);
-  await btn(s, 'Seguir');
+    <p class="l">
+      Este capítulo todavía no está escrito.
+    </p>
+
+    <p class="small l">
+      Cuando llegue tu cumpleaños, aquí tendrás tu propio recuerdo.
+    </p>
+  `, 'night');
+
+  await reveal(s, 900);
+
+  await btn(s, 'Volver a tus cumpleaños');
+
+  yearHub();
 }
 
-async function fakeEnd() {
-  await go(`<p class="l on">${esc(T.fakeEnd[0])}</p>`, 'night');
-  await sleep(3200);
+// --- Navegación ---
+function makePageNav() {
+  if (pageNav) return pageNav;
 
-  await go(`<p class="l on kick">${esc(T.fakeEnd[1])}</p>`, 'night');
-  await sleep(2600);
-}
+  pageNav = document.createElement('nav');
 
-async function artist() {
-  const s = await go(
-    `<h1 class="l">${esc(T.artistTitle)}</h1>
-    <figure class="photo" id="ph"><img alt="" src="${esc(CONFIG.artistImage)}"></figure>`,
-    'night'
+  pageNav.className = 'page-nav';
+
+  pageNav.setAttribute(
+    'aria-label',
+    'Navegación de páginas'
   );
 
-  s.querySelector('img').onerror = e => {
-    e.target.replaceWith(
-      Object.assign(document.createElement('p'), {
-        className: 'small',
-        textContent: 'Falta ' + CONFIG.artistImage
-      })
-    );
+  pageNav.innerHTML = `
+    <button
+      class="page-arrow"
+      id="pageBack"
+      aria-label="Página anterior"
+    >
+      ‹
+    </button>
+
+    <span
+      class="page-count"
+      id="pageCount"
+    >
+      01 / 06
+    </span>
+
+    <button
+      class="page-arrow"
+      id="pageForward"
+      aria-label="Volver a una página visitada"
+    >
+      ›
+    </button>
+  `;
+
+  document.body.append(pageNav);
+
+  $('#pageBack').onclick = () => {
+    if (historyIndex > 0) {
+      historyIndex--;
+      currentPage = pageHistory[historyIndex];
+      renderPage(currentPage);
+    }
   };
 
-  s.querySelector('h1').classList.add('on');
-  await sleep(2600);
+  $('#pageForward').onclick = () => {
+    if (historyIndex < pageHistory.length - 1) {
+      historyIndex++;
+      currentPage = pageHistory[historyIndex];
+      renderPage(currentPage);
+    }
+  };
 
-  $('#ph').classList.add('on');
-  await sleep(3600);
-
-  await btn(s, 'Siguiente');
+  return pageNav;
 }
 
-async function art() {
-  const s = await go(
-    `<h1 class="l">${esc(T.artTitle)}</h1>
-    <div class="vid" id="vid">
-      <video playsinline preload="auto" src="${esc(CONFIG.finalVideo)}"></video>
-      <div class="play" id="play">▶</div>
-    </div>`,
-    'black'
+function updatePageNav(show) {
+  const nav = makePageNav();
+
+  nav.hidden = !show;
+
+  if (!show) return;
+
+  $('#pageCount').textContent =
+    `${String(currentPage + 1).padStart(2, '0')} / ${String(STORY_PAGES).padStart(2, '0')}`;
+
+  $('#pageBack').disabled =
+    historyIndex <= 0;
+
+  $('#pageForward').disabled =
+    historyIndex >= pageHistory.length - 1;
+}
+
+function goNextPage() {
+  const next = currentPage + 1;
+
+  if (next >= STORY_PAGES) return;
+
+  if (
+    historyIndex < pageHistory.length - 1 &&
+    pageHistory[historyIndex + 1] === next
+  ) {
+    historyIndex++;
+  } else {
+    pageHistory =
+      pageHistory.slice(0, historyIndex + 1);
+
+    pageHistory.push(next);
+    historyIndex++;
+  }
+
+  currentPage = next;
+
+  renderPage(currentPage);
+}
+
+function startJourney() {
+  pageHistory = [0];
+  historyIndex = 0;
+  currentPage = 0;
+
+  renderPage(0);
+}
+
+async function renderPage(index) {
+  currentPage = index;
+
+  updatePageNav(true);
+
+  if (index === 4) {
+    $('#music').hidden = true;
+    window.bgAudio?.pause();
+  } else {
+    $('#music').hidden = false;
+    window.startMusic?.();
+  }
+
+  if (index === 0) return renderIntro();
+  if (index === 1) return renderLetter();
+  if (index === 2) return renderArtist();
+  if (index === 3) return renderGuard();
+  if (index === 4) return renderArt();
+
+  return renderEnd();
+}
+
+// --- Página 1 ---
+async function renderIntro() {
+  const s = await go(`
+    <p class="l kick">
+      15 años, la criatura.
+    </p>
+
+    <p class="l">
+      Hoy te toca recibir tu regalito.
+    </p>
+
+    <p class="small l">
+      Cuando estés lista, dale a empezar.
+    </p>
+  `, 'rose');
+
+  s.classList.add('has-page-nav');
+
+  await reveal(s, 1400);
+  await sleep(500);
+
+  await btn(s, 'Empezar');
+
+  goNextPage();
+}
+
+// --- Página 2 ---
+async function renderLetter() {
+  const paras =
+    CONFIG.personalMessage
+      .trim()
+      .split(/\n\s*\n/);
+
+  const s = await go(`
+    <div class="letter-scene">
+
+      <p class="l heart-line">
+        Y, desde el fondo de mi corazón…
+      </p>
+
+      <div class="letter">
+        ${paras.map(p =>
+          `<p class="l">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`
+        ).join('')}
+      </div>
+
+      <div class="letter-actions">
+        <button
+          class="btn on"
+          id="letterNext"
+        >
+          Seguir
+        </button>
+      </div>
+
+    </div>
+  `, 'warm');
+
+  s.classList.add(
+    'letter-scene-root',
+    'has-page-nav'
+  );
+
+  for (
+    const p of s.querySelectorAll(
+      '.heart-line, .letter .l'
+    )
+  ) {
+    p.classList.add('on');
+    await sleep(700);
+  }
+
+  $('#letterNext').onclick =
+    goNextPage;
+}
+
+// --- Página 3 ---
+async function renderArtist() {
+  const s = await go(`
+    <h1 class="l">
+      ${esc(T.artistTitle)}
+    </h1>
+
+    <figure
+      class="photo"
+      id="ph"
+    >
+      <img
+        alt=""
+        src="${esc(CONFIG.artistImage)}"
+      >
+    </figure>
+
+    <p class="small l artist-tip">
+      Mantén pulsada la foto para guardarla.
+    </p>
+  `, 'night');
+
+  s.classList.add('has-page-nav');
+
+  s.querySelector('img').onerror =
+    e => {
+      e.target.replaceWith(
+        Object.assign(
+          document.createElement('p'),
+          {
+            className: 'small',
+            textContent:
+              'Falta ' +
+              CONFIG.artistImage
+          }
+        )
+      );
+    };
+
+  s.querySelector('h1').classList.add('on');
+
+  await sleep(1000);
+
+  $('#ph').classList.add('on');
+
+  await sleep(1200);
+
+  s.querySelector(
+    '.artist-tip'
+  ).classList.add('on');
+
+  await btn(s, 'Siguiente');
+
+  goNextPage();
+}
+
+// --- Página 4 ---
+async function renderGuard() {
+  const s = await go(`
+    <p class="l kick">
+      Antes de seguir…
+    </p>
+
+    <p class="l">
+      Asegúrate de que no haya nadie mirando.
+    </p>
+
+    <p class="small l">
+      Lo que viene ahora es solo para ti.
+    </p>
+  `, 'black');
+
+  s.classList.add('has-page-nav');
+
+  await reveal(s, 1200);
+
+  await btn(s, 'Estoy a solas');
+
+  goNextPage();
+}
+
+// --- Página 5 ---
+// EL ARTE: no tocar la composición aprobada.
+async function renderArt() {
+  const s = await go(`
+    <h1 class="l">
+      ${esc(T.artTitle)}
+    </h1>
+
+    <div
+      class="vid"
+      id="vid"
+    >
+      <video
+        playsinline
+        preload="metadata"
+        src="${esc(CONFIG.finalVideo)}"
+      ></video>
+
+      <div
+        class="play"
+        id="play"
+      >
+        ▶
+      </div>
+    </div>
+
+    <div class="art-actions">
+      <button
+        class="btn"
+        id="lastDoor"
+      >
+        Y por último...
+      </button>
+    </div>
+  `, 'black');
+
+  s.classList.add(
+    'art-scene',
+    'has-page-nav'
   );
 
   $('#music').hidden = true;
   window.bgAudio?.pause();
 
-  const v = s.querySelector('video');
-  const play = $('#play');
+  const v =
+    s.querySelector('video');
 
-  s.querySelector('h1').classList.add('on');
-  await sleep(2800);
+  const play =
+    $('#play');
 
-  $('#vid').classList.add('on');
+  const lastDoor =
+    $('#lastDoor');
 
-  v.onerror = () => {
-    play.textContent = 'Falta ' + CONFIG.finalVideo;
-    play.style.fontSize = '1rem';
-  };
-
-  play.onclick = () => v.play();
-
-  v.onplay = () => play.classList.add('gone');
-
-  v.onclick = () => v.paused ? v.play() : v.pause();
-
-  await new Promise(res => {
-    v.onended = () => res();
-  });
+  s.querySelector(
+    'h1'
+  ).classList.add('on');
 
   await sleep(1200);
 
-  const b = document.createElement('button');
-  b.className = 'btn art-actions on';
-  b.textContent = 'Y por último...';
-  b.onclick = () => {
-    b.disabled = true;
-    renderEnd();
+  $('#vid').classList.add('on');
+
+  lastDoor.disabled = true;
+  lastDoor.classList.remove('on');
+
+  v.onerror = () => {
+    play.textContent =
+      'Falta ' +
+      CONFIG.finalVideo;
+
+    play.style.fontSize =
+      '1rem';
   };
 
-  s.append(b);
-}
-
-const STORY_PAGES = 6;
-let page = 1;
-let pageHistory = [];
-
-function renderNav() {
-  let nav = $('#page-nav');
-
-  if (!nav) {
-    nav = document.createElement('nav');
-    nav.id = 'page-nav';
-    nav.className = 'page-nav';
-    document.body.append(nav);
-  }
-
-  nav.innerHTML = `
-    <button id="prev-page" aria-label="Página anterior">←</button>
-    <span>${page}/${STORY_PAGES}</span>
-    <button id="next-page" aria-label="Página siguiente">→</button>
-  `;
-
-  $('#prev-page').disabled = pageHistory.length === 0;
-  $('#next-page').disabled = page >= STORY_PAGES || !pageHistory.includes(page + 1);
-
-  $('#prev-page').onclick = () => {
-    if (!pageHistory.length) return;
-    const previous = pageHistory.pop();
-    page = previous;
-    renderCurrent();
+  v.onloadedmetadata = () => {
+    if (
+      v.videoWidth &&
+      v.videoHeight
+    ) {
+      s.style.setProperty(
+        '--video-native-ratio',
+        `${v.videoWidth} / ${v.videoHeight}`
+      );
+    }
   };
 
-  $('#next-page').onclick = () => {
-    if (page >= STORY_PAGES || !pageHistory.includes(page + 1)) return;
-    pageHistory.push(page);
-    page++;
-    renderCurrent();
-  };
-}
+  play.onclick = () =>
+    v.play().catch(() => {});
 
-async function renderCurrent() {
-  if (page === 1) await intro();
-  if (page === 2) await letter();
-  if (page === 3) await artist();
-  if (page === 4) await guard();
-  if (page === 5) await art();
-  if (page === 6) renderEnd();
+  v.onplay = () =>
+    play.classList.add('gone');
 
-  renderNav();
-}
+  v.onclick = () =>
+    v.paused
+      ? v.play().catch(() => {})
+      : v.pause();
 
-function renderEnd() {
-  const s = document.createElement('section');
-  s.className = 'scene final-scene in';
-  s.innerHTML = `<h1 class="final-title">${esc(T.final)}</h1>`;
+  await new Promise(res => {
+    v.onended = res;
+  });
 
-  const cur = app.firstElementChild;
-  if (cur) cur.remove();
+  await sleep(500);
 
-  app.append(s);
+  lastDoor.disabled = false;
 
-  page = 6;
-  renderNav();
-}
-
-async function guard() {
-  const s = await go(
-    `<div class="guard">
-      <p class="l kick">Antes de seguir...</p>
-      <p class="l">Quiero que esta parte la veas tranquila.</p>
-      <p class="l">Asegúrate de que nadie esté mirando.</p>
-      <button class="btn l" id="alone">Estoy a solas</button>
-    </div>`,
-    'night'
+  requestAnimationFrame(() =>
+    lastDoor.classList.add('on')
   );
 
-  reveal(s, 1200);
-  await new Promise(res => $('#alone').onclick = () => res());
-}
-
-function yearHub() {
-  const YEARS = [
-    { year: 2026, age: 15, status: 'Completado' },
-    { year: 2027, age: 16, status: 'Próximamente' },
-    { year: 2028, age: 17, status: 'Próximamente' },
-    { year: 2029, age: 18, status: 'Próximamente' }
-  ];
-
-  $('#music').hidden = false;
-  window.startMusic?.();
-
-  const s = document.createElement('section');
-  s.className = 'scene in archive-scene';
-
-  s.innerHTML = `
-    <div class="archive">
-      <button class="archive-back" id="archive-back">←</button>
-      <h1>Archivos</h1>
-      <div class="year-grid">
-        ${YEARS.map(y => `
-          <button class="year-card" data-year="${y.year}">
-            <strong>${y.year}</strong>
-            <span>${y.status}</span>
-          </button>
-        `).join('')}
-      </div>
-    </div>
-  `;
-
-  const cur = app.firstElementChild;
-  if (cur) cur.remove();
-
-  app.append(s);
-
-  $('#archive-back').onclick = () => {
-    renderCurrent();
-  };
-
-  s.querySelectorAll('.year-card').forEach(card => {
-    card.onclick = () => {
-      const year = YEARS.find(y => String(y.year) === card.dataset.year);
-      if (!year) return;
-
-      const ageText = `${year.age} años`;
-
-      s.innerHTML = `
-        <div class="archive-detail">
-          <button class="archive-back" id="detail-back">←</button>
-          <p class="archive-year">${year.year}</p>
-          <p class="archive-age">${ageText}</p>
-          <p class="archive-status">${year.status}</p>
-          <p class="archive-note">
-            ${year.year === 2026
-              ? 'Este fue el comienzo.'
-              : 'Este archivo todavía no está abierto.'}
-          </p>
-        </div>
-      `;
-
-      $('#detail-back').onclick = () => yearHub();
+  await new Promise(res => {
+    lastDoor.onclick = () => {
+      lastDoor.disabled = true;
+      res();
     };
   });
+
+  goNextPage();
 }
 
-function setupTopControls() {
-  let archive = $('#archive');
+// --- Página 6 ---
+async function renderEnd() {
+  updatePageNav(true);
 
-  if (!archive) {
-    archive = document.createElement('button');
-    archive.id = 'archive';
-    archive.textContent = 'Archivos';
-    document.body.append(archive);
-  }
-
-  archive.onclick = yearHub;
+  await go(`
+    <h1 class="final l on">
+      ${esc(T.final)}
+    </h1>
+  `, 'warm');
 }
 
-window.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    window.bgAudio?.pause();
-  }
-});
+// --- Botón del archivo ---
+function makeArchiveButton() {
+  if (
+    document.getElementById(
+      'archive'
+    )
+  ) return;
 
-async function startExperience() {
-  setupTopControls();
+  const b =
+    document.createElement(
+      'button'
+    );
 
-  page = 1;
-  pageHistory = [];
+  b.id = 'archive';
+  b.type = 'button';
+  b.textContent = '▦';
+
+  b.setAttribute(
+    'aria-label',
+    'Tus cumpleaños'
+  );
+
+  b.title =
+    'Tus cumpleaños';
+
+  b.onclick =
+    yearHub;
+
+  document.body.append(b);
+}
+
+// --- Arranque ---
+async function story() {
+  setupMusic();
 
   await password();
-  await renderCurrent();
+
+  makeArchiveButton();
+
+  startJourney();
 }
 
-async function boot() {
-  $('#boot')?.remove();
+// --- Música ---
+function setupMusic() {
+  if (!CONFIG.music) return;
 
-  if (!standalone() && !dev) {
-    await install();
-    return;
+  const a =
+    window.bgAudio =
+      new Audio(CONFIG.music);
+
+  const b =
+    $('#music');
+
+  a.loop = true;
+  a.volume = .35;
+
+  b.hidden = false;
+
+  b.onclick = () => {
+    if (a.paused) {
+      a.play();
+      b.classList.remove('off');
+    } else {
+      a.pause();
+      b.classList.add('off');
+    }
+  };
+
+  b.classList.add('off');
+
+  const stopMusic = () => {
+    if (!a.paused) a.pause();
+
+    b.classList.add('off');
+  };
+
+  document.addEventListener(
+    'visibilitychange',
+    () => {
+      if (document.hidden)
+        stopMusic();
+    }
+  );
+
+  addEventListener(
+    'pagehide',
+    stopMusic
+  );
+
+  addEventListener(
+    'blur',
+    stopMusic
+  );
+
+  window.stopMusic =
+    stopMusic;
+
+  window.startMusic =
+    () =>
+      a.play()
+        .then(() =>
+          b.classList.remove(
+            'off'
+          )
+        )
+        .catch(() => {});
+}
+
+// --- Service Worker ---
+if (
+  'serviceWorker' in navigator
+) {
+  navigator.serviceWorker
+    .register('sw.js')
+    .catch(() => {});
+}
+
+// --- Inicio ---
+addEventListener(
+  'load',
+  async () => {
+    await sleep(900);
+
+    $('#boot')
+      .classList
+      .add('gone');
+
+    (
+      standalone() ||
+      dev
+    )
+      ? story()
+      : install();
   }
-
-  startExperience();
-}
-
-boot();
+);
