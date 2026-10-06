@@ -22,15 +22,8 @@ async function go(html, mood) {
 }
 const reveal = async (root, gap = 1500) => { for (const n of root.querySelectorAll('.l')) { n.classList.add('on'); await sleep(gap); } };
 const btn = (root, label, cls = '') => new Promise(res => {
-  const wrap = document.createElement('div');
-  wrap.className = 'btn-slot';
-  const b = document.createElement('button');
-  b.className = 'btn ' + cls;
-  b.textContent = label;
-  b.onclick = () => { b.disabled = true; res(); };
-  wrap.append(b);
-  root.append(wrap);
-  requestAnimationFrame(() => b.classList.add('on'));
+  const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label;
+  b.onclick = () => { b.disabled = true; res(); }; root.append(b); requestAnimationFrame(() => b.classList.add('on'));
 });
 const lines = (arr, first) => arr.map((t, i) => `<p class="l ${i === 0 && first ? 'kick' : ''}">${esc(t)}</p>`).join('');
 
