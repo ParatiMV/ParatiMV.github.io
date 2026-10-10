@@ -687,6 +687,13 @@ h1 {
 
 /* Carta */
 
+.heart-line {
+  color: var(--rose);
+  font-style: italic;
+  font-size: clamp(1.05rem, 4vw, 1.25rem);
+  max-width: 30ch;
+}
+
 .letter {
   width:
     min(620px, 100%);
@@ -1280,8 +1287,7 @@ h1 {
   left: 0;
   right: 0;
 
-  bottom:
-    env(safe-area-inset-bottom);
+  bottom: 0;
 
   transform: none;
 
@@ -1509,7 +1515,6 @@ h1 {
   }
 
   .page-nav {
-    bottom:
-      env(safe-area-inset-bottom);
+    bottom: 0;
   }
 }
