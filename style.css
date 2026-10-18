@@ -1090,7 +1090,7 @@ h1 {
   position: fixed;
 
   top:
-    calc(env(safe-area-inset-top) + 1.5rem);
+    calc(env(safe-area-inset-top) + 1.2rem);
 
   right: .8rem;
 
@@ -1110,16 +1110,13 @@ h1 {
 
   color: var(--text);
 
-  font: 1.1rem/1 var(--sans);
+  font-size: 1.1rem;
 
   opacity: .6;
 }
 
 #music.off {
-  text-decoration:
-    line-through;
-
-  opacity: .35;
+  opacity: .6;
 }
 
 /* Archivo */
@@ -1128,7 +1125,7 @@ h1 {
   position: fixed;
 
   top:
-    calc(env(safe-area-inset-top) + 1.5rem);
+    calc(env(safe-area-inset-top) + 1.2rem);
 
   left: .8rem;
 
@@ -1264,6 +1261,8 @@ h1 {
 }
 
 .year-age {
+  display: none;
+
   font-size: .9rem;
 
   opacity: .78;
@@ -1458,7 +1457,7 @@ h1 {
     gap: .65rem;
 
     padding-top:
-      calc(env(safe-area-inset-top) + .8rem);
+      calc(env(safe-area-inset-top) + 1.2rem);
 
     padding-bottom:
       calc(env(safe-area-inset-bottom) + 5.8rem);
@@ -1515,6 +1514,7 @@ h1 {
   }
 
   .page-nav {
-    bottom: 0;
+    bottom:
+      env(safe-area-inset-bottom);
   }
 }
