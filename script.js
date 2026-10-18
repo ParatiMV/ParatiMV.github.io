@@ -40,7 +40,7 @@ async function renderArt() {   const s = await go(`     <h1 class="l">       ${e
 async function renderEnd() {   updatePageNav(true);    await go(`     <h1 class="final l on">       ${esc(T.final)}     </h1>   `, 'warm'); }
 
 // --- Botón del archivo ---
-function makeArchiveButton() {   if (     document.getElementById(       'archive'     )   ) return;    const b =     document.createElement(       'button'     );    b.id = 'archive';   b.type = 'button';   b.textContent = '▦';    b.setAttribute(     'aria-label',     'Tus cumpleaños'   );    b.title =     'Tus cumpleaños';    b.onclick =     yearHub;    document.body.append(b); }
+function makeArchiveButton() {   if (     document.getElementById(       'archive'     )   ) return;    const b =     document.createElement(       'button'     );    b.id = 'archive';   b.type = 'button';   b.textContent = '▤';    b.setAttribute(     'aria-label',     'Tus cumpleaños'   );    b.title =     'Tus cumpleaños';    b.onclick =     yearHub;    document.body.append(b); }
 
 // --- Arranque ---
 async function story() {   setupMusic();    await password();    makeArchiveButton();    startJourney(); }

@@ -1090,7 +1090,7 @@ h1 {
   position: fixed;
 
   top:
-    calc(env(safe-area-inset-top) + .8rem);
+    calc(env(safe-area-inset-top) + 1.5rem);
 
   right: .8rem;
 
@@ -1110,7 +1110,7 @@ h1 {
 
   color: var(--text);
 
-  font-size: 1.1rem;
+  font: 1.1rem/1 var(--sans);
 
   opacity: .6;
 }
@@ -1128,7 +1128,7 @@ h1 {
   position: fixed;
 
   top:
-    calc(env(safe-area-inset-top) + .8rem);
+    calc(env(safe-area-inset-top) + 1.5rem);
 
   left: .8rem;
 
