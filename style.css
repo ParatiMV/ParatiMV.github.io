@@ -1506,11 +1506,15 @@ h1 {
   }
 
   .letter-scene-root.has-page-nav
-  .letter-actions,
+  .letter-actions {
+    bottom:
+      calc(env(safe-area-inset-bottom) + 3.55rem);
+  }
+
   .art-scene.has-page-nav
   .art-actions {
     bottom:
-      calc(env(safe-area-inset-bottom) + 3.55rem);
+      calc(env(safe-area-inset-bottom) + 2.9rem);
   }
 
   .page-nav {
