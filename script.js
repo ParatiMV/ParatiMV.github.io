@@ -815,52 +815,42 @@ function setupMusic() {
   const b =
     $('#music');
 
-  const levels = [
-    { icon: '🔈', volume: .15 },
-    { icon: '🔉', volume: .35 },
-    { icon: '🔊', volume: .65 },
-    { icon: '🔇', volume: 0 }
-  ];
-
-  let level = 3;
-
-  const applyLevel = async (nextLevel) => {
-    level = nextLevel;
-    const state = levels[level];
-    b.textContent = state.icon;
-    b.setAttribute('aria-label', level === 3 ? 'Activar música' : 'Volumen de música');
-    b.title = level === 3 ? 'Música apagada' : `Volumen ${level === 0 ? 'bajo' : level === 1 ? 'medio' : 'alto'}`;
-    b.classList.toggle('off', level === 3);
-    a.volume = state.volume;
-
-    if (level === 3) {
-      a.pause();
-      return;
-    }
-
-    try {
-      await a.play();
-    } catch (_) {}
-  };
-
   a.loop = true;
   a.volume = .35;
   b.hidden = false;
   b.textContent = '🔇';
   b.classList.add('off');
   b.setAttribute('aria-label', 'Activar música');
+  b.title = 'Música apagada';
 
-  b.onclick = () => {
-    applyLevel((level + 1) % levels.length);
+  const showMusicState = () => {
+    const playing = !a.paused;
+    b.textContent = playing ? '🔊' : '🔇';
+    b.classList.toggle('off', !playing);
+    b.setAttribute(
+      'aria-label',
+      playing ? 'Apagar música' : 'Activar música'
+    );
+    b.title = playing ? 'Música activada' : 'Música apagada';
   };
+
+  b.onclick = async () => {
+    if (a.paused) {
+      try {
+        await a.play();
+      } catch (_) {}
+    } else {
+      a.pause();
+    }
+    showMusicState();
+  };
+
+  a.addEventListener('play', showMusicState);
+  a.addEventListener('pause', showMusicState);
 
   const stopMusic = () => {
     if (!a.paused) a.pause();
-    level = 3;
-    b.textContent = '🔇';
-    b.classList.add('off');
-    b.setAttribute('aria-label', 'Activar música');
-    b.title = 'Música apagada';
+    showMusicState();
   };
 
   document.addEventListener(
@@ -876,10 +866,8 @@ function setupMusic() {
 
   window.stopMusic = stopMusic;
 
-  window.startMusic = () => {
-    if (level === 3) level = 1;
-    applyLevel(level);
-  };
+  window.startMusic = () =>
+    a.play().catch(() => {});
 }
 
 // --- Service Worker ---

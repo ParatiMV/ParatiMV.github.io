@@ -1514,7 +1514,6 @@ h1 {
   }
 
   .page-nav {
-    bottom:
-      env(safe-area-inset-bottom);
+    bottom: 0;
   }
 }
