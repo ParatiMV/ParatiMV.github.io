@@ -879,15 +879,44 @@ if (
     .catch(() => {});
 }
 
+// --- Introducción de entrada ---
+function bootIntro() {
+  const boot = $('#boot');
+  if (!boot) return Promise.resolve();
+
+  boot.innerHTML = `
+    <div class="boot-heart" aria-hidden="true">♡</div>
+    <h1 class="boot-title">Para ti</h1>
+    <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
+    <div class="boot-progress" aria-hidden="true"><span></span></div>
+    <p class="boot-caption">Preparando una sorpresa</p>
+    <button class="boot-skip" type="button">Saltar introducción <span aria-hidden="true">→</span></button>
+  `;
+
+  return new Promise(resolve => {
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      resolve();
+    };
+
+    boot.querySelector('.boot-skip')?.addEventListener('click', finish, { once: true });
+    window.setTimeout(finish, 5500);
+  });
+}
+
 // --- Inicio ---
 addEventListener(
   'load',
   async () => {
-    await sleep(900);
+    await bootIntro();
 
     $('#boot')
       .classList
       .add('gone');
+
+    await sleep(350);
 
     (
       standalone() ||
