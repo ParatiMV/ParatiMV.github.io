@@ -879,171 +879,22 @@ if (
     .catch(() => {});
 }
 
-// --- Introducción de entrada: estrellas que escriben CARMEN y forman un corazón ---
+// --- Introducción de entrada ---
 function bootIntro() {
   const boot = $('#boot');
   if (!boot) return Promise.resolve();
 
   boot.innerHTML = `
-    <canvas class="boot-stars" aria-hidden="true"></canvas>
-    <div class="boot-copy">
-      <h1 class="boot-title">Para ti</h1>
-      <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
-      <div class="boot-progress" aria-hidden="true"><span></span></div>
-      <p class="boot-caption">Preparando una sorpresa</p>
-    </div>
+    <div class="boot-heart" aria-hidden="true">♡</div>
+    <h1 class="boot-title">Para ti</h1>
+    <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
+    <div class="boot-progress" aria-hidden="true"><span></span></div>
+    <p class="boot-caption">Preparando una sorpresa</p>
   `;
 
+  // La intro se ve completa: no hay botón para saltarla.
   return new Promise(resolve => {
-    let finished = false;
-    let raf = 0;
-    let resizeHandler;
-    const duration = 15000;
-    const nameStarts = 900;
-    const nameGatherDuration = 5200;
-    const nameHoldUntil = 8200;
-    const heartTransformDuration = 4200;
-    const canvas = boot.querySelector('.boot-stars');
-    const ctx = canvas?.getContext('2d');
-    const copy = boot.querySelector('.boot-copy');
-    let width = 0, height = 0, dpr = 1, stars = [];
-
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      cancelAnimationFrame(raf);
-      if (resizeHandler) removeEventListener('resize', resizeHandler);
-      resolve();
-    };
-
-    const ease = t => {
-      t = Math.max(0, Math.min(1, t));
-      return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    };
-
-    function sampleTextTargets(text, font, yCenter) {
-      const off = document.createElement('canvas');
-      const octx = off.getContext('2d', { willReadFrequently: true });
-      const fontSize = Math.min(width * .17, 68);
-      octx.font = `italic 500 ${fontSize}px ${font}`;
-      const metrics = octx.measureText(text);
-      off.width = Math.ceil(metrics.width + 36);
-      off.height = Math.ceil(fontSize * 2.0);
-      // Setting canvas dimensions resets its context, so apply the cursive font again.
-      octx.font = `italic 500 ${fontSize}px ${font}`;
-      octx.textAlign = 'center';
-      octx.textBaseline = 'middle';
-      octx.fillStyle = '#fff';
-      octx.fillText(text, off.width / 2, off.height / 2);
-      const data = octx.getImageData(0, 0, off.width, off.height).data;
-      const pts = [];
-      const step = width < 400 ? 3 : 4;
-      for (let y = 0; y < off.height; y += step) {
-        for (let x = 0; x < off.width; x += step) {
-          if (data[(y * off.width + x) * 4 + 3] > 90) {
-            pts.push({ x: width / 2 + x - off.width / 2, y: yCenter + y - off.height / 2 });
-          }
-        }
-      }
-      return pts;
-    }
-
-    function heartTargets(count) {
-      const pts = [];
-      // Only sample the outline: no random points inside the heart.
-      const scale = Math.min(width / 39, height / 48, 9.4);
-      const cx = width / 2;
-      const cy = height * .39;
-      for (let i = 0; i < count; i++) {
-        const a = Math.PI * 2 * i / count;
-        const x = 16 * Math.pow(Math.sin(a), 3);
-        const y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
-        pts.push({ x: cx + x * scale, y: cy - y * scale });
-      }
-      return pts;
-    }
-
-    function setup() {
-      if (!canvas || !ctx) return;
-      width = window.innerWidth;
-      height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      const textTargets = sampleTextTargets('CARMEN', '"Snell Roundhand", "Segoe Script", "Brush Script MT", cursive', height * .39);
-      const count = Math.min(260, Math.max(170, textTargets.length));
-      const heart = heartTargets(count);
-      stars = Array.from({ length: count }, (_, i) => {
-        const textPoint = textTargets[Math.floor(i * textTargets.length / count)] || { x: width / 2, y: height * .39 };
-        const heartPoint = heart[i];
-        return {
-          sx: Math.random() * width,
-          sy: Math.random() * height,
-          tx: textPoint.x, ty: textPoint.y,
-          hx: heartPoint.x, hy: heartPoint.y,
-          size: .8 + Math.random() * 1.25,
-          phase: Math.random() * Math.PI * 2,
-          hue: Math.random() < .72 ? 330 : 265
-        };
-      });
-    }
-
-    function drawSparkle(x, y, size, alpha, hue) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(Math.PI / 4);
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = `hsl(${hue}, 78%, 84%)`;
-      ctx.lineWidth = .8;
-      ctx.shadowColor = hue === 330 ? 'rgba(232,163,184,.72)' : 'rgba(168,125,255,.72)';
-      ctx.shadowBlur = 4;
-      ctx.beginPath();
-      ctx.moveTo(-size * 1.5, 0);
-      ctx.lineTo(size * 1.5, 0);
-      ctx.moveTo(0, -size * 1.5);
-      ctx.lineTo(0, size * 1.5);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    const startedAt = performance.now();
-    function draw(now) {
-      if (finished || !ctx) return;
-      const elapsed = now - startedAt;
-      ctx.clearRect(0, 0, width, height);
-
-      const gather = ease((elapsed - nameStarts) / nameGatherDuration);
-      const transformStart = nameHoldUntil;
-      const transform = ease((elapsed - transformStart) / heartTransformDuration);
-      const heartPhase = elapsed >= transformStart ? Math.min(1, (elapsed - transformStart) / 850) : 0;
-
-      for (const star of stars) {
-        let x, y;
-        if (elapsed < transformStart) {
-          x = star.sx + (star.tx - star.sx) * gather;
-          y = star.sy + (star.ty - star.sy) * gather;
-        } else {
-          x = star.tx + (star.hx - star.tx) * transform;
-          y = star.ty + (star.hy - star.ty) * transform;
-        }
-        const twinkle = .68 + .32 * Math.sin(now / 650 + star.phase);
-        const alpha = elapsed < transformStart ? twinkle : twinkle * (.35 + .65 * heartPhase);
-        drawSparkle(x, y, star.size, alpha, star.hue);
-      }
-
-      if (elapsed >= 11200) copy?.classList.add('is-visible');
-      if (elapsed < duration) raf = requestAnimationFrame(draw);
-    }
-
-    resizeHandler = () => setup();
-    setup();
-    addEventListener('resize', resizeHandler, { passive: true });
-    raf = requestAnimationFrame(draw);
-    window.setTimeout(finish, duration);
+    window.setTimeout(resolve, 15000);
   });
 }
 
