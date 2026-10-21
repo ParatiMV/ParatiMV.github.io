@@ -114,10 +114,9 @@ body[data-m="black"] {
 
 /* Pantalla de entrada: diseñada primero para móvil */
 #boot {
-  position: fixed;
-  /* Extiende el fondo por debajo del borde inferior del viewport de iOS.
-     El padding compensado mantiene el contenido en la misma posición. */
-  inset: 0 0 -64px;
+  /* La intro vive dentro de #app y usa el mismo marco que las escenas. */
+  position: absolute;
+  inset: 0;
   width: auto;
   height: auto;
   min-height: 0;
@@ -131,7 +130,7 @@ body[data-m="black"] {
   padding:
     calc(env(safe-area-inset-top) + 2rem)
     1.5rem
-    calc(env(safe-area-inset-bottom) + 2rem + 64px);
+    calc(env(safe-area-inset-bottom) + 2rem);
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
