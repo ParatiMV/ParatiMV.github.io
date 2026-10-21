@@ -879,7 +879,7 @@ if (
     .catch(() => {});
 }
 
-// --- Introducción de entrada ---
+// --- Introducción de entrada: estrellas que escriben CARMEN y forman un corazón ---
 function bootIntro() {
   const boot = $('#boot');
   if (!boot) return Promise.resolve();
@@ -892,14 +892,17 @@ function bootIntro() {
       <div class="boot-progress" aria-hidden="true"><span></span></div>
       <p class="boot-caption">Preparando una sorpresa</p>
     </div>
-    <button class="boot-skip" type="button">Saltar introducción <span aria-hidden="true">→</span></button>
   `;
 
   return new Promise(resolve => {
     let finished = false;
     let raf = 0;
     let resizeHandler;
-    const duration = 6500;
+    const duration = 15000;
+    const nameStarts = 900;
+    const nameGatherDuration = 5200;
+    const nameHoldUntil = 8200;
+    const heartTransformDuration = 4200;
     const canvas = boot.querySelector('.boot-stars');
     const ctx = canvas?.getContext('2d');
     const copy = boot.querySelector('.boot-copy');
@@ -913,25 +916,31 @@ function bootIntro() {
       resolve();
     };
 
+    const ease = t => {
+      t = Math.max(0, Math.min(1, t));
+      return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
     function sampleTextTargets(text, font, yCenter) {
       const off = document.createElement('canvas');
       const octx = off.getContext('2d', { willReadFrequently: true });
-      const fontSize = Math.min(width * .13, 58);
-      octx.font = `600 ${fontSize}px ${font}`;
+      const fontSize = Math.min(width * .17, 68);
+      octx.font = `italic 500 ${fontSize}px ${font}`;
       const metrics = octx.measureText(text);
-      off.width = Math.ceil(metrics.width + 24);
-      off.height = Math.ceil(fontSize * 1.8);
-      octx.font = `600 ${fontSize}px ${font}`;
+      off.width = Math.ceil(metrics.width + 36);
+      off.height = Math.ceil(fontSize * 2.0);
+      // Setting canvas dimensions resets its context, so apply the cursive font again.
+      octx.font = `italic 500 ${fontSize}px ${font}`;
       octx.textAlign = 'center';
       octx.textBaseline = 'middle';
       octx.fillStyle = '#fff';
       octx.fillText(text, off.width / 2, off.height / 2);
       const data = octx.getImageData(0, 0, off.width, off.height).data;
       const pts = [];
-      const step = width < 400 ? 4 : 5;
+      const step = width < 400 ? 3 : 4;
       for (let y = 0; y < off.height; y += step) {
         for (let x = 0; x < off.width; x += step) {
-          if (data[(y * off.width + x) * 4 + 3] > 100) {
+          if (data[(y * off.width + x) * 4 + 3] > 90) {
             pts.push({ x: width / 2 + x - off.width / 2, y: yCenter + y - off.height / 2 });
           }
         }
@@ -939,23 +948,16 @@ function bootIntro() {
       return pts;
     }
 
-    function heartTargets() {
+    function heartTargets(count) {
       const pts = [];
-      const scale = Math.min(width / 38, height / 44, 9.2);
+      // Only sample the outline: no random points inside the heart.
+      const scale = Math.min(width / 39, height / 48, 9.4);
       const cx = width / 2;
-      const cy = height * .40;
-      for (let i = 0; i < 240; i++) {
-        const a = Math.PI * 2 * i / 240;
+      const cy = height * .39;
+      for (let i = 0; i < count; i++) {
+        const a = Math.PI * 2 * i / count;
         const x = 16 * Math.pow(Math.sin(a), 3);
-        const y = 13 * Math.cos(a) - 5 * Math.cos(2*a) - 2 * Math.cos(3*a) - Math.cos(4*a);
-        pts.push({ x: cx + x * scale, y: cy - y * scale });
-      }
-      // Add a few points inside the outline for a fuller, starry heart.
-      for (let i = 0; i < 95; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = Math.sqrt(Math.random()) * .78;
-        const x = 16 * Math.pow(Math.sin(a), 3) * r;
-        const y = (13 * Math.cos(a) - 5 * Math.cos(2*a) - 2 * Math.cos(3*a) - Math.cos(4*a)) * r;
+        const y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
         pts.push({ x: cx + x * scale, y: cy - y * scale });
       }
       return pts;
@@ -972,63 +974,74 @@ function bootIntro() {
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const textTargets = sampleTextTargets('CARMEN', 'Arial, sans-serif', height * .40);
-      const heart = heartTargets();
-      const count = Math.min(210, Math.max(150, textTargets.length));
+      const textTargets = sampleTextTargets('CARMEN', '"Snell Roundhand", "Segoe Script", "Brush Script MT", cursive', height * .39);
+      const count = Math.min(260, Math.max(170, textTargets.length));
+      const heart = heartTargets(count);
       stars = Array.from({ length: count }, (_, i) => {
-        const textPoint = textTargets[Math.floor(i * textTargets.length / count)] || { x: width/2, y: height*.4 };
-        const heartPoint = heart[Math.floor(i * heart.length / count)];
+        const textPoint = textTargets[Math.floor(i * textTargets.length / count)] || { x: width / 2, y: height * .39 };
+        const heartPoint = heart[i];
         return {
           sx: Math.random() * width,
           sy: Math.random() * height,
           tx: textPoint.x, ty: textPoint.y,
           hx: heartPoint.x, hy: heartPoint.y,
-          size: .7 + Math.random() * 1.7,
+          size: .8 + Math.random() * 1.25,
           phase: Math.random() * Math.PI * 2,
           hue: Math.random() < .72 ? 330 : 265
         };
       });
     }
 
-    const ease = t => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
+    function drawSparkle(x, y, size, alpha, hue) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(Math.PI / 4);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = `hsl(${hue}, 78%, 84%)`;
+      ctx.lineWidth = .8;
+      ctx.shadowColor = hue === 330 ? 'rgba(232,163,184,.72)' : 'rgba(168,125,255,.72)';
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      ctx.moveTo(-size * 1.5, 0);
+      ctx.lineTo(size * 1.5, 0);
+      ctx.moveTo(0, -size * 1.5);
+      ctx.lineTo(0, size * 1.5);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const startedAt = performance.now();
     function draw(now) {
       if (finished || !ctx) return;
       const elapsed = now - startedAt;
-      const p = Math.min(1, elapsed / duration);
       ctx.clearRect(0, 0, width, height);
-      const gather = ease(elapsed / 2300);
-      const transform = ease((elapsed - 2300) / 2100);
-      const heartAlpha = Math.max(0, Math.min(1, (elapsed - 2300) / 500));
+
+      const gather = ease((elapsed - nameStarts) / nameGatherDuration);
+      const transformStart = nameHoldUntil;
+      const transform = ease((elapsed - transformStart) / heartTransformDuration);
+      const heartPhase = elapsed >= transformStart ? Math.min(1, (elapsed - transformStart) / 850) : 0;
 
       for (const star of stars) {
-        let x, y, alpha = .55 + .45 * Math.sin(now / 280 + star.phase);
-        if (elapsed < 2300) {
+        let x, y;
+        if (elapsed < transformStart) {
           x = star.sx + (star.tx - star.sx) * gather;
           y = star.sy + (star.ty - star.sy) * gather;
         } else {
           x = star.tx + (star.hx - star.tx) * transform;
           y = star.ty + (star.hy - star.ty) * transform;
-          alpha *= heartAlpha;
         }
-        ctx.beginPath();
-        ctx.fillStyle = `hsla(${star.hue}, 75%, ${elapsed > 2300 ? 82 : 86}%, ${alpha})`;
-        ctx.shadowColor = star.hue === 330 ? 'rgba(232,163,184,.8)' : 'rgba(168,125,255,.8)';
-        ctx.shadowBlur = 5;
-        ctx.arc(x, y, star.size, 0, Math.PI * 2);
-        ctx.fill();
+        const twinkle = .68 + .32 * Math.sin(now / 650 + star.phase);
+        const alpha = elapsed < transformStart ? twinkle : twinkle * (.35 + .65 * heartPhase);
+        drawSparkle(x, y, star.size, alpha, star.hue);
       }
-      ctx.shadowBlur = 0;
-      if (elapsed >= 4300) {
-        copy?.classList.add('is-visible');
-      }
-      if (p < 1) raf = requestAnimationFrame(draw);
+
+      if (elapsed >= 11200) copy?.classList.add('is-visible');
+      if (elapsed < duration) raf = requestAnimationFrame(draw);
     }
 
-    const startedAt = performance.now();
     resizeHandler = () => setup();
     setup();
     addEventListener('resize', resizeHandler, { passive: true });
-    boot.querySelector('.boot-skip')?.addEventListener('click', finish, { once: true });
     raf = requestAnimationFrame(draw);
     window.setTimeout(finish, duration);
   });
