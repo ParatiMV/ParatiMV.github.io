@@ -115,8 +115,9 @@ body[data-m="black"] {
 /* Pantalla de entrada: diseñada primero para móvil */
 #boot {
   position: fixed;
-  inset: 0;
-  /* Igual que las escenas: inset define la altura real sin competir con 100vh/100dvh. */
+  /* Extiende el fondo por debajo del borde inferior del viewport de iOS.
+     El padding compensado mantiene el contenido en la misma posición. */
+  inset: 0 0 -64px;
   width: auto;
   height: auto;
   min-height: 0;
@@ -128,9 +129,9 @@ body[data-m="black"] {
   justify-content: center;
   gap: 0;
   padding:
-    calc(env(safe-area-inset-top) + 1.5rem)
-    1.6rem
-    calc(env(safe-area-inset-bottom) + 1.5rem);
+    calc(env(safe-area-inset-top) + 2rem)
+    1.5rem
+    calc(env(safe-area-inset-bottom) + 2rem + 64px);
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
