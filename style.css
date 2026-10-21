@@ -87,6 +87,15 @@ body::before {
     var(--bg);
 }
 
+/* Durante la intro, el fondo usa el mismo plano fijo que las demás escenas.
+   Así el área inferior del iPhone no depende de la altura de #boot. */
+body.booting::before {
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
+    radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%),
+    var(--bg);
+}
+
 body[data-m="warm"] {
   --g1: #3a2a24;
   --g2: #1a2038;
@@ -128,10 +137,8 @@ body[data-m="black"] {
   gap: 0;
   padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
-    radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%),
-    var(--bg);
+  /* El fondo completo lo dibuja body.booting::before, fuera de este panel. */
+  background: transparent;
   text-align: center;
   transition: opacity .75s ease;
 }

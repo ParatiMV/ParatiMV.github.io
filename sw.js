@@ -1,4 +1,4 @@
-const V = 'regalo-v10';
+const V = 'regalo-v11';
 
 const SHELL = [
   './',

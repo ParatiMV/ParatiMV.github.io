@@ -884,6 +884,7 @@ function bootIntro() {
   const boot = $('#boot');
   if (!boot) return Promise.resolve();
 
+  document.body.classList.add('booting');
   boot.classList.add('active');
   boot.innerHTML = `
     <div class="boot-heart" aria-hidden="true">♡</div>
@@ -912,8 +913,14 @@ addEventListener(
     }
 
     await bootIntro();
-    $('#boot')?.classList.add('gone');
-    await sleep(350);
+
+    const boot = $('#boot');
+    boot?.classList.add('gone');
+    // Espera a que termine la transición antes de retirar su fondo compartido.
+    await sleep(800);
+    boot?.remove();
+    document.body.classList.remove('booting');
+
     story();
   }
 );
