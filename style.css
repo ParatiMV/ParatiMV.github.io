@@ -112,24 +112,28 @@ body[data-m="black"] {
   --g2: #000;
 }
 
-/* Pantalla de entrada: diseñada primero para móvil */
+/* Pantalla de entrada: estrellas animadas, priorizando móvil */
 #boot {
   position: fixed;
   inset: 0;
   z-index: 30;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
+  display: block;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
-    radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%),
-    var(--bg);
+  padding: 0;
+  background: #0a0c14;
   text-align: center;
+  isolation: isolate;
   transition: opacity .75s ease;
+}
+
+#boot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(168, 125, 255, .09), transparent 43%),
+    radial-gradient(ellipse at 50% 80%, rgba(232, 163, 184, .08), transparent 46%);
 }
 
 #boot.gone {
@@ -137,20 +141,28 @@ body[data-m="black"] {
   pointer-events: none;
 }
 
-.boot-heart {
-  display: grid;
-  place-items: center;
-  width: 5.2rem;
-  height: 5.2rem;
-  margin-bottom: 1.6rem;
-  border: 1px solid rgba(232, 163, 184, .28);
-  border-radius: 50%;
-  color: var(--rose);
-  font-family: var(--sans);
-  font-size: 3rem;
-  line-height: 1;
-  text-shadow: 0 0 24px rgba(232, 163, 184, .38);
-  animation: boot-heart 2.4s ease-in-out infinite;
+.boot-stars {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.boot-copy {
+  position: absolute;
+  top: 61%;
+  left: 50%;
+  width: min(88%, 24rem);
+  transform: translate(-50%, -10px);
+  opacity: 0;
+  transition: opacity .8s ease, transform .8s ease;
+  pointer-events: none;
+}
+
+.boot-copy.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .boot-title {
@@ -165,17 +177,17 @@ body[data-m="black"] {
 
 .boot-subtitle {
   max-width: 24ch;
-  margin: .9rem 0 0;
-  color: rgba(244, 239, 233, .68);
+  margin: .65rem auto 0;
+  color: rgba(244, 239, 233, .72);
   font-family: var(--sans);
-  font-size: .96rem;
-  line-height: 1.55;
+  font-size: .94rem;
+  line-height: 1.5;
 }
 
 .boot-progress {
   width: min(13rem, 68vw);
   height: 3px;
-  margin-top: 2.4rem;
+  margin: 1.55rem auto 0;
   overflow: hidden;
   border-radius: 99px;
   background: rgba(244, 239, 233, .12);
@@ -186,58 +198,55 @@ body[data-m="black"] {
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--rose), #f0b985);
+  background: linear-gradient(90deg, #e8a3b8, #b9a0ff);
   transform: scaleX(0);
   transform-origin: left center;
-  animation: boot-progress 5.5s linear forwards;
+  animation: boot-progress 6.5s linear forwards;
 }
 
 .boot-caption {
-  margin: .75rem 0 0;
-  color: rgba(244, 239, 233, .42);
+  margin: .7rem 0 0;
+  color: rgba(244, 239, 233, .43);
   font-family: var(--sans);
-  font-size: .72rem;
-  letter-spacing: .08em;
+  font-size: .68rem;
+  letter-spacing: .09em;
   text-transform: uppercase;
 }
 
 .boot-skip {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 1.15rem);
+  bottom: calc(env(safe-area-inset-bottom) + .75rem);
   min-height: 44px;
   padding: .7rem 1rem;
   border: 1px solid rgba(232, 163, 184, .3);
   border-radius: 999px;
-  background: rgba(10, 12, 20, .4);
-  color: rgba(244, 239, 233, .78);
+  background: rgba(10, 12, 20, .72);
+  color: rgba(244, 239, 233, .82);
   font: 500 .85rem var(--sans);
   transform: translateX(-50%);
   cursor: pointer;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .boot-skip:active {
   background: rgba(232, 163, 184, .12);
 }
 
-@keyframes boot-heart {
-  0%, 100% { transform: scale(1); opacity: .82; }
-  50% { transform: scale(1.06); opacity: 1; }
-}
-
 @keyframes boot-progress {
   to { transform: scaleX(1); }
 }
 
-@media (max-height: 620px) {
-  .boot-heart { width: 4rem; height: 4rem; font-size: 2.3rem; margin-bottom: 1rem; }
-  .boot-progress { margin-top: 1.4rem; }
+@media (max-height: 680px) {
+  .boot-copy { top: 59%; }
+  .boot-subtitle { margin-top: .45rem; }
+  .boot-progress { margin-top: 1rem; }
   .boot-skip { bottom: calc(env(safe-area-inset-bottom) + .35rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .boot-heart { animation: none; }
+  .boot-copy { transition-duration: .15s; }
   .boot-progress span { animation-duration: .01ms; }
   #boot { transition-duration: .15s; }
 }
