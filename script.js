@@ -886,7 +886,7 @@ function bootIntro() {
 
   boot.innerHTML = `
     <div class="boot-heart" aria-hidden="true">♡</div>
-    <h1 class="boot-title">Para ti</h1>
+    <h1 class="boot-title">Para ti mi vida</h1>
     <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
     <div class="boot-progress" aria-hidden="true"><span></span></div>
     <p class="boot-caption">Preparando una sorpresa</p>

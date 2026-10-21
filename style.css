@@ -47,7 +47,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: var(--bg);
+  background: #0a0c14;
   color: var(--text);
   font-family: var(--serif);
 }
@@ -137,18 +137,7 @@ body[data-m="black"] {
   transition: opacity .75s ease;
 }
 
-/* Cubre también la zona inferior del móvil para evitar una franja de otro color. */
-#boot::after {
-  content: "";
-  position: fixed;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: max(28px, env(safe-area-inset-bottom));
-  background: var(--bg);
-  pointer-events: none;
-}
+/* No añadimos una banda sólida encima del degradado inferior. */
 
 #boot.gone {
   opacity: 0;
