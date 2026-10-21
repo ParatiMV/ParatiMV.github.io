@@ -116,10 +116,10 @@ body[data-m="black"] {
 #boot {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 100%;
+  /* Igual que las escenas: inset define la altura real sin competir con 100vh/100dvh. */
+  width: auto;
+  height: auto;
+  min-height: 0;
   box-sizing: border-box;
   z-index: 30;
   display: flex;
@@ -127,7 +127,10 @@ body[data-m="black"] {
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
+  padding:
+    calc(env(safe-area-inset-top) + 1.5rem)
+    1.6rem
+    calc(env(safe-area-inset-bottom) + 1.5rem);
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
