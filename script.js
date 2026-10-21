@@ -884,6 +884,7 @@ function bootIntro() {
   const boot = $('#boot');
   if (!boot) return Promise.resolve();
 
+  boot.classList.add('active');
   boot.innerHTML = `
     <div class="boot-heart" aria-hidden="true">♡</div>
     <h1 class="boot-title">Para ti mi vida</h1>
@@ -902,19 +903,17 @@ function bootIntro() {
 addEventListener(
   'load',
   async () => {
+    // La web normal solo muestra el tutorial de instalación: nada de intro ni spoilers.
+    // La intro y toda la experiencia se reservan para la PWA instalada (o modo dev).
+    if (!(standalone() || dev)) {
+      $('#boot')?.remove();
+      await install();
+      return;
+    }
+
     await bootIntro();
-
-    $('#boot')
-      .classList
-      .add('gone');
-
+    $('#boot')?.classList.add('gone');
     await sleep(350);
-
-    (
-      standalone() ||
-      dev
-    )
-      ? story()
-      : install();
+    story();
   }
 );

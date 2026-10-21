@@ -112,9 +112,9 @@ body[data-m="black"] {
   --g2: #000;
 }
 
-/* Pantalla de entrada: diseñada primero para móvil */
+/* Pantalla de entrada: solo se activa en la PWA instalada */
 #boot {
-  /* La intro vive dentro de #app y usa el mismo marco que las escenas. */
+  display: none;
   position: absolute;
   inset: 0;
   width: auto;
@@ -122,15 +122,11 @@ body[data-m="black"] {
   min-height: 0;
   box-sizing: border-box;
   z-index: 30;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding:
-    calc(env(safe-area-inset-top) + 2rem)
-    1.5rem
-    calc(env(safe-area-inset-bottom) + 2rem);
+  padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
@@ -138,6 +134,10 @@ body[data-m="black"] {
     var(--bg);
   text-align: center;
   transition: opacity .75s ease;
+}
+
+#boot.active {
+  display: flex;
 }
 
 /* No añadimos una banda sólida encima del degradado inferior. */
