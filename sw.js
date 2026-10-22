@@ -1,4 +1,4 @@
-const V = 'regalo-v11';
+const V = 'regalo-v13';
 
 const SHELL = [
   './',
@@ -10,7 +10,7 @@ const SHELL = [
   'assets/icon-192.png',
   'assets/icon-512.png',
   'assets/apple-touch-icon.png',
-  'assets/artist.jpg'
+  'artist.jpg'
 ];
 
 self.addEventListener('install', e =>

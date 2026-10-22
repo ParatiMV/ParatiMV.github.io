@@ -206,7 +206,7 @@ body[data-m="black"] {
   background: linear-gradient(90deg, var(--rose), #f0b985);
   transform: scaleX(0);
   transform-origin: left center;
-  animation: boot-progress 15s linear forwards;
+  animation: boot-progress 10s linear forwards;
 }
 
 .boot-caption {
@@ -215,7 +215,13 @@ body[data-m="black"] {
   font-family: var(--sans);
   font-size: .72rem;
   letter-spacing: .08em;
-  text-transform: uppercase;
+  text-transform: none;
+}
+
+.boot-caption u {
+  text-decoration-color: var(--rose);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
 }
 
 .boot-skip {
@@ -254,7 +260,7 @@ body[data-m="black"] {
 
 @media (prefers-reduced-motion: reduce) {
   .boot-heart { animation: none; }
-  .boot-progress span { animation-duration: 15s; }
+  .boot-progress span { animation-duration: 10s; }
   #boot { transition-duration: .15s; }
 }
 
@@ -1268,17 +1274,14 @@ h1 {
 #app {
   position: fixed;
 
+  /* Deja que los cuatro bordes definan el tamaño. En iOS, combinar inset: 0
+     con height/min-height explícitos puede dejar el borde inferior fuera del área pintada. */
   inset: 0;
-
-  width: 100%;
-  height: 100%;
-
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  width: auto;
+  height: auto;
+  min-height: 0;
 
   overflow: hidden;
-
   z-index: 1;
 }
 

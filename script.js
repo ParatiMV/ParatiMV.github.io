@@ -880,6 +880,9 @@ if (
 }
 
 // --- Introducción de entrada ---
+const bootFadeDuration = () =>
+  matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 750;
+
 function bootIntro() {
   const boot = $('#boot');
   if (!boot) return Promise.resolve();
@@ -891,12 +894,14 @@ function bootIntro() {
     <h1 class="boot-title">Para ti mi vida</h1>
     <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
     <div class="boot-progress" aria-hidden="true"><span></span></div>
-    <p class="boot-caption">Preparando una sorpresa</p>
+    <p class="boot-caption">Contigo <u>4ever</u></p>
   `;
 
-  // La intro se ve completa: no hay botón para saltarla.
+  // Duración total prevista: 10 s, incluido el desvanecimiento.
+  // No hay botón para saltarla.
+  const fadeMs = bootFadeDuration();
   return new Promise(resolve => {
-    window.setTimeout(resolve, 15000);
+    window.setTimeout(resolve, 10000 - fadeMs);
   });
 }
 
@@ -916,8 +921,8 @@ addEventListener(
 
     const boot = $('#boot');
     boot?.classList.add('gone');
-    // Espera a que termine la transición antes de retirar su fondo compartido.
-    await sleep(800);
+    // Espera a que termine el desvanecimiento antes de retirar el fondo compartido.
+    await sleep(bootFadeDuration() + 50);
     boot?.remove();
     document.body.classList.remove('booting');
 
