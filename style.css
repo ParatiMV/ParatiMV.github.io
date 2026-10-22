@@ -87,13 +87,22 @@ body::before {
     var(--bg);
 }
 
-/* Durante la intro, el fondo usa el mismo plano fijo que las demás escenas.
-   Así el área inferior del iPhone no depende de la altura de #boot. */
-body.booting::before {
+/* Durante la intro, el fondo se pinta en el canvas raíz del documento,
+   no en un pseudo-elemento fijo que puede dejar distinta la zona inferior de iOS. */
+html.booting {
   background:
     radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
     radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%),
     var(--bg);
+  background-attachment: fixed;
+}
+
+body.booting {
+  background: transparent;
+}
+
+body.booting::before {
+  display: none;
 }
 
 body[data-m="warm"] {
@@ -821,7 +830,8 @@ h1 {
 
   scrollbar-width: none;
 
-  text-align: left;
+  text-align: justify;
+  text-justify: inter-word;
 
   overscroll-behavior: contain;
 }
@@ -837,6 +847,8 @@ h1 {
   line-height: 1.65;
 
   max-width: 46ch;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 /* Artista */
@@ -1056,6 +1068,8 @@ h1 {
   line-height: 1.65;
 
   max-width: 46ch;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 /* Artista */

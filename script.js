@@ -887,6 +887,7 @@ function bootIntro() {
   const boot = $('#boot');
   if (!boot) return Promise.resolve();
 
+  document.documentElement.classList.add('booting');
   document.body.classList.add('booting');
   boot.classList.add('active');
   boot.innerHTML = `
@@ -924,8 +925,11 @@ addEventListener(
     // Espera a que termine el desvanecimiento antes de retirar el fondo compartido.
     await sleep(bootFadeDuration() + 50);
     boot?.remove();
-    document.body.classList.remove('booting');
 
+    // Inicia la primera escena antes de retirar la clase del fondo raíz.
+    // Así el fondo de la historia ya está elegido al cerrar la intro.
     story();
+    document.body.classList.remove('booting');
+    document.documentElement.classList.remove('booting');
   }
 );
