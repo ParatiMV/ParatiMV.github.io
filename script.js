@@ -31,7 +31,7 @@ async function go(html, mood) {
 
   if (version !== sceneVersion) throw cancelled();
   app.replaceChildren();
-  if (mood) document.body.dataset.m = mood;
+  if (mood) document.documentElement.dataset.m = mood;
 
   const s = document.createElement('section');
   s.className = 'scene';
@@ -890,7 +890,7 @@ function bootIntro() {
     <h1 class="boot-title">Para ti mi vida</h1>
     <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
     <div class="boot-progress" aria-hidden="true"><span></span></div>
-    <p class="boot-caption"><u>Contigo 4ever</u></p>
+    <p class="boot-caption">Contigo <u>4ever</u></p>
   `;
 
   // Duración total prevista: 10 s, incluido el desvanecimiento.

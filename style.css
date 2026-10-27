@@ -51,82 +51,39 @@ body {
   font-family: var(--serif);
 }
 
+/* One document canvas paints the story and the iPhone safe areas.
+   A fixed pseudo-element can stop before the area painted by Safari. */
+html {
+  --edge-fade: linear-gradient(to top,
+    var(--bg) 0,
+    var(--bg) env(safe-area-inset-bottom, 0px),
+    transparent calc(env(safe-area-inset-bottom, 0px) + 5rem));
+  background-color: var(--bg);
+  background-image:
+    var(--edge-fade),
+    radial-gradient(120% 80% at 50% 0%, var(--g1), transparent 70%),
+    radial-gradient(100% 70% at 50% 110%, var(--g2), transparent 70%);
+  background-repeat: no-repeat;
+  transition: --g1 2.5s ease, --g2 2.5s ease;
+}
+
 body {
-  min-height: 100vh;
-  min-height: 100dvh;
   position: relative;
-
-  transition:
-    --g1 2.5s ease,
-    --g2 2.5s ease;
-}
-
-body::before {
-  content: '';
-
-  position: fixed;
-  inset: 0;
-
-  z-index: 0;
-
-  pointer-events: none;
-
-  background:
-    radial-gradient(
-      120% 80% at 50% 0%,
-      var(--g1),
-      transparent 70%
-    ),
-    radial-gradient(
-      100% 70% at 50% 110%,
-      var(--g2),
-      transparent 70%
-    ),
-    var(--bg);
-}
-
-/* Durante la intro, el fondo se pinta en el canvas raíz del documento,
-   no en un pseudo-elemento fijo que puede dejar distinta la zona inferior de iOS. */
-html.booting {
-  background:
-    radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
-    radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%),
-    var(--bg);
-  background-attachment: fixed;
-}
-
-body.booting {
   background: transparent;
 }
 
-body.booting::before {
-  display: none;
+html.booting {
+  background-image:
+    var(--edge-fade),
+    radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
+    radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%);
 }
 
-body[data-m="warm"] {
-  --g1: #3a2a24;
-  --g2: #1a2038;
-}
-
-body[data-m="rose"] {
-  --g1: #33202f;
-  --g2: #16224a;
-}
-
-body[data-m="blue"] {
-  --g1: #14213d;
-  --g2: #2a1c2e;
-}
-
-body[data-m="night"] {
-  --g1: #0d1224;
-  --g2: #05060b;
-}
-
-body[data-m="black"] {
-  --g1: #000;
-  --g2: #000;
-}
+html[data-m="warm"] { --g1: #3a2a24; --g2: #1a2038; }
+html[data-m="rose"] { --g1: #33202f; --g2: #16224a; }
+html[data-m="blue"] { --g1: #14213d; --g2: #2a1c2e; }
+html[data-m="night"] { --g1: #0d1224; --g2: #05060b; }
+html[data-m="black"] { --g1: #000; --g2: #000; }
 
 /* Pantalla de entrada: solo se activa en la PWA instalada */
 #boot {
@@ -144,7 +101,7 @@ body[data-m="black"] {
   gap: 0;
   padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
   overflow: hidden;
-  /* El fondo completo lo dibuja body.booting::before, fuera de este panel. */
+  /* El fondo lo pinta html, también fuera de este panel. */
   background: transparent;
   text-align: center;
   transition: opacity .75s ease;
