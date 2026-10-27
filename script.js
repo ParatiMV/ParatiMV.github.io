@@ -19,6 +19,37 @@ function setupViewportRecovery() {
   const viewport = window.visualViewport;
   let frame = 0;
   let settleTimer = 0;
+  const phone = /iPhone|iPod/.test(navigator.userAgent);
+  const fullHeights = new Map();
+
+  const layoutHeight = () => {
+    let measured = Math.round(Math.max(window.innerHeight, viewport?.height || 0));
+    if (!phone) return measured;
+
+    // Only use phone-screen geometry when this standalone window spans its width.
+    // Do not apply this assumption to iPad windows or ordinary Safari tabs.
+    const width = Math.round(window.innerWidth);
+    const screen = window.screen;
+    const full = Math.abs(width - screen?.width) <= 2 ? screen.height
+      : Math.abs(width - screen?.height) <= 2 ? screen.width : 0;
+    if (!full) return measured;
+
+    const key = width + ':' + full;
+    const previous = fullHeights.get(key) || 0;
+    const style = getComputedStyle(root);
+    const safe = (parseFloat(style.getPropertyValue('--viewport-safe-top')) || 0) +
+      (parseFloat(style.getPropertyValue('--viewport-safe-bottom')) || 0);
+    const missing = full - measured;
+    // The initial read may omit only the system insets. Larger differences
+    // are not evidence that the whole screen is available to this web view.
+    if (missing >= 0 && missing <= safe + 2) measured = full;
+
+    // Keyboard dismissal and zoom can briefly report a smaller size at scale 1.
+    // Keep the full size already established for this screen width/orientation.
+    const height = Math.min(full, Math.max(measured, previous));
+    if (height === full) fullHeights.set(key, height);
+    return height;
+  };
 
   const editing = () => {
     const active = document.activeElement;
@@ -31,7 +62,7 @@ function setupViewportRecovery() {
     if (document.hidden || editing() ||
         (viewport && Math.abs(viewport.scale - 1) > .02)) return;
 
-    const height = Math.round(Math.max(window.innerHeight, viewport?.height || 0));
+    const height = layoutHeight();
     if (height > 0) {
       const value = height + 'px';
       if (root.style.getPropertyValue('--app-height') !== value) {
@@ -1013,3 +1044,4 @@ addEventListener(
     document.documentElement.classList.remove('booting');
   }
 );
+
