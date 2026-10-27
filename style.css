@@ -11,6 +11,8 @@
 }
 
 :root {
+  --viewport-safe-top: env(safe-area-inset-top, 0px);
+  --viewport-safe-bottom: env(safe-area-inset-bottom, 0px);
   --bg: #0a0c14;
   --text: #f4efe9;
   --warm: #f0b985;
@@ -1607,3 +1609,4 @@ h1 {
   }
   .scene:not(.has-page-nav) { padding-bottom: calc(env(safe-area-inset-bottom) + 6rem); }
 }
+
