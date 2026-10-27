@@ -31,7 +31,9 @@ const CONFIG = {
     fakeEnd: ["Eso era todo.", "Bueno… casi."],
     artistTitle: "EL ARTISTA",
     artTitle: "EL ARTE",
-    final: "Feliz cumpleaños, Carmen 💞"
+    final: "Feliz cumpleaños, Carmen 💞",
+    finalEnvelopeTitle: "Y una última cosita…",
+    finalNote: "Si has llegado hasta aquí, espero haberte sacado alguna sonrisa, este rinconcito está hecho para ti y puedes volver cuando te apetezca, por hoy solo te queda disfrutar de tu día y dejarte querer un poquito."
   },
 
   // El universo de Carmen (callbacks reales del chat; cambia/añade lo que quieras)
@@ -63,4 +65,5 @@ const CONFIG = {
     { phrase: "Te comoooo", note: "" }
   ]
 };
+
 
