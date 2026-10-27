@@ -37,3 +37,13 @@ La solución retira el fondo del pseudo-elemento fijo y lo pinta en html durante
 Validación adicional: Edge 390 × 844, seis capturas de las paletas e intro con la app reducida artificialmente 34 píxeles. El último píxel inferior conserva RGB 10, 12, 20 en todas las capturas, el cuerpo es transparente y no hay pseudo-elemento de fondo. Este experimento verifica la composición del fondo, no simula el viewport real de iOS. Las pruebas de navegación, música, carta, intro y error de vídeo vuelven a pasar.
 
 Referencias técnicas: [WebKit sobre fondos y áreas seguras](https://webkit.org/blog/7929/designing-websites-for-iphone-x/) y [reporte abierto de geometría standalone en iOS](https://bugs.webkit.org/show_bug.cgi?id=313800). El segundo es un reporte de usuarios, no una confirmación de que sea el problema concreto de este dispositivo. El cierre visual requiere prueba en iPhone.
+
+## Medición física y retirada de la máscara inferior
+
+El usuario aportó una captura de la prueba instalada en iPhone 12 Pro Max con iOS 27.0.1. Valores observados: screen 428×926, inner 428×926, visualViewport 428×926 y offsetTop 0, htmlHeight/bodyHeight 926, fixedBottom/dynamicBottom 926, 100vh/100dvh 926, safeTop 47px y safeBottom 34px. documentClient es 428×879, 47px menos; no debe interpretarse como 47px perdidos en la parte inferior cuando ambos bordes medidos llegan a 926. Las líneas rosa y verde alcanzan el borde inferior en la captura.
+
+Esta medición demuestra que la página de prueba instalada dispone de toda la altura, no que la app principal ya haya sido medida con la misma geometría. Se descarta asumir un defecto de viewport físico basándose solo en el color del fondo.
+
+Cambio propuesto: retirar completamente --edge-fade, dar a html y body altura explícita 100dvh con fallback 100vh y pintar los degradados existentes sobre body. El fondo deja de depender del canvas raíz y ya no se desvanece a un color liso antes del borde. No se cambian insets, posición de botones, escenas, carta ni audiovisuales. Se mantienen las paletas y la intro, cuyo fondo se aplica mediante body.booting. Caché y referencias HTML pasan a v19.
+
+Validación local: pruebas de navegación, música, carta, intro y error de vídeo, comprobación de altura del cuerpo y app, y pruebas de caché. La nueva representación necesita una última comprobación visual en la app principal del iPhone tras actualizar.
