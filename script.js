@@ -11,22 +11,35 @@ const ua = navigator.userAgent;
 const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = /Android/.test(ua);
 
+let sceneVersion = 0;
+const cancelled = () => Object.assign(new Error('Scene replaced'), { name: 'AbortError' });
+const sceneSleep = async (root, ms) => {
+  await sleep(ms);
+  if (!root.isConnected || root.dataset.version !== String(sceneVersion)) throw cancelled();
+};
+
 async function go(html, mood) {
+  const version = ++sceneVersion;
+  app.querySelectorAll('video').forEach(v => v.pause());
   const cur = app.firstElementChild;
   if (cur) {
+    cur.inert = true;
     cur.classList.add('out');
     await sleep(800);
     cur.remove();
   }
 
+  if (version !== sceneVersion) throw cancelled();
+  app.replaceChildren();
   if (mood) document.body.dataset.m = mood;
 
   const s = document.createElement('section');
   s.className = 'scene';
+  s.dataset.version = version;
   s.innerHTML = html;
   app.append(s);
 
-  await sleep(40);
+  await sceneSleep(s, 40);
   s.classList.add('in');
   return s;
 }
@@ -34,11 +47,12 @@ async function go(html, mood) {
 const reveal = async (root, gap = 1500) => {
   for (const n of root.querySelectorAll('.l')) {
     n.classList.add('on');
-    await sleep(gap);
+    await sceneSleep(root, gap);
   }
 };
 
-const btn = (root, label, cls = '') => new Promise(res => {
+const btn = (root, label, cls = '') => new Promise((res, reject) => {
+  if (!root.isConnected || root.dataset.version !== String(sceneVersion)) return reject(cancelled());
   const wrap = document.createElement('div');
   wrap.className = 'btn-slot';
 
@@ -47,6 +61,7 @@ const btn = (root, label, cls = '') => new Promise(res => {
   b.textContent = label;
 
   b.onclick = () => {
+    if (!root.isConnected || root.dataset.version !== String(sceneVersion)) return;
     b.disabled = true;
     res();
   };
@@ -77,7 +92,7 @@ addEventListener('appinstalled', () => {
 
 const STEPS = {
   ios: [
-    'Abre esta página en <b>Safari</b> y dale click a <b>las tres rayas</b>.',
+    'Abre esta página en <b>Safari</b> y dale click a <b>el botón Compartir</b>.',
     'Elige <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>.',
     'Click en <b>Añadir</b>.',
     'Cierra Safari y abre la app desde el <b>nuevo icono</b>.'
@@ -109,11 +124,11 @@ async function install() {
     <button class="btn l" id="inst" hidden>Instalar</button>
   `, 'warm');
 
-  reveal(s, 1300);
+  reveal(s, 1300).catch(error => { if (error.name !== 'AbortError') console.error(error); });
 
   $('#inst').onclick = async () => {
     if (deferred) {
-      deferred.prompt();
+      await deferred.prompt();
       await deferred.userChoice;
       deferred = null;
       $('#inst').hidden = true;
@@ -122,7 +137,7 @@ async function install() {
 
   if (deferred) $('#inst').hidden = false;
 
-  await sleep(4500);
+  await sceneSleep(s, 4500);
   await btn(s, 'Ya está instalada');
   almost();
 }
@@ -136,7 +151,7 @@ async function almost() {
     'night'
   );
 
-  reveal(s, 1200);
+  reveal(s, 1200).catch(error => { if (error.name !== 'AbortError') console.error(error); });
   $('#back').onclick = install;
 }
 
@@ -173,7 +188,7 @@ async function password() {
     <p class="err" id="err"></p>
   `, 'warm');
 
-  reveal(s, 1300);
+  reveal(s, 1300).catch(error => { if (error.name !== 'AbortError') console.error(error); });
 
   const i = $('#pw');
   const eye = $('#pwEye');
@@ -237,6 +252,7 @@ const STORY_PAGES = 7;
 
 // --- Archivo ---
 async function yearHub() {
+  currentPage = -1;
   updatePageNav(false);
 
   // Abrir el archivo NO debe apagar la música.
@@ -469,7 +485,7 @@ async function renderIntro() {
   s.classList.add('has-page-nav');
 
   await reveal(s, 1400);
-  await sleep(500);
+  await sceneSleep(s, 500);
 
   await btn(s, 'Empezar');
 
@@ -519,10 +535,10 @@ async function renderLetter() {
     )
   ) {
     p.classList.add('on');
-    await sleep(700);
+    await sceneSleep(s, 700);
   }
 
-  $('#letterNext').onclick =
+  s.querySelector('#letterNext').onclick =
     goNextPage;
 }
 
@@ -545,7 +561,7 @@ async function renderGiftIntro() {
   s.classList.add('has-page-nav');
 
   await reveal(s, 1200);
-  await sleep(400);
+  await sceneSleep(s, 400);
   await btn(s, 'Descubrir mi regalo');
 
   goNextPage();
@@ -592,11 +608,11 @@ async function renderArtist() {
 
   s.querySelector('h1').classList.add('on');
 
-  await sleep(1000);
+  await sceneSleep(s, 1000);
 
-  $('#ph').classList.add('on');
+  s.querySelector('#ph').classList.add('on');
 
-  await sleep(1200);
+  await sceneSleep(s, 1200);
 
   s.querySelector(
     '.artist-tip'
@@ -646,16 +662,18 @@ async function renderArt() {
     >
       <video
         playsinline
-        preload="metadata"
+        preload="none"
         src="${esc(CONFIG.finalVideo)}"
       ></video>
 
-      <div
+      <button
+        type="button"
         class="play"
         id="play"
+        aria-label="Reproducir vídeo"
       >
         ▶
-      </div>
+      </button>
     </div>
 
     <div class="art-actions">
@@ -686,69 +704,40 @@ async function renderArt() {
   const lastDoor =
     $('#lastDoor');
 
-  s.querySelector(
-    'h1'
-  ).classList.add('on');
-
-  await sleep(1200);
-
-  $('#vid').classList.add('on');
-
+  const unlock = () => {
+    if (!s.isConnected) return;
+    lastDoor.disabled = false;
+    lastDoor.classList.add('on');
+  };
+  const failed = () => {
+    play.classList.remove('gone');
+    play.textContent = 'No se puede reproducir, toca para reintentar';
+    play.style.fontSize = '1rem';
+    unlock();
+  };
   lastDoor.disabled = true;
-  lastDoor.classList.remove('on');
-
-  v.onerror = () => {
-    play.textContent =
-      'Falta ' +
-      CONFIG.finalVideo;
-
-    play.style.fontSize =
-      '1rem';
+  lastDoor.onclick = () => {
+    if (lastDoor.disabled || !s.isConnected) return;
+    lastDoor.disabled = true;
+    v.pause();
+    goNextPage();
   };
-
-  v.onloadedmetadata = () => {
-    if (
-      v.videoWidth &&
-      v.videoHeight
-    ) {
-      s.style.setProperty(
-        '--video-native-ratio',
-        `${v.videoWidth} / ${v.videoHeight}`
-      );
-    }
+  v.onerror = failed;
+  v.onended = unlock;
+  v.onplay = () => play.classList.add('gone');
+  v.onpause = () => { if (!v.ended) play.classList.remove('gone'); };
+  play.onclick = () => {
+    if (v.error) v.load();
+    v.play().catch(failed);
   };
+  v.onclick = () => v.paused ? v.play().catch(failed) : v.pause();
+  s.querySelector('h1').classList.add('on');
+  await sceneSleep(s, 1200);
+  s.querySelector('#vid').classList.add('on');
+  // A stalled request must never trap the recipient.
+  await sceneSleep(s, 15000);
+  unlock();
 
-  play.onclick = () =>
-    v.play().catch(() => {});
-
-  v.onplay = () =>
-    play.classList.add('gone');
-
-  v.onclick = () =>
-    v.paused
-      ? v.play().catch(() => {})
-      : v.pause();
-
-  await new Promise(res => {
-    v.onended = res;
-  });
-
-  await sleep(500);
-
-  lastDoor.disabled = false;
-
-  requestAnimationFrame(() =>
-    lastDoor.classList.add('on')
-  );
-
-  await new Promise(res => {
-    lastDoor.onclick = () => {
-      lastDoor.disabled = true;
-      res();
-    };
-  });
-
-  goNextPage();
 }
 
 // --- Página 6 ---
@@ -808,6 +797,7 @@ async function story() {
 function setupMusic() {
   if (!CONFIG.music) return;
 
+  let musicWanted = true;
   const a =
     window.bgAudio =
       new Audio(CONFIG.music);
@@ -835,7 +825,8 @@ function setupMusic() {
   };
 
   b.onclick = async () => {
-    if (a.paused) {
+    musicWanted = a.paused;
+    if (musicWanted) {
       try {
         await a.play();
       } catch (_) {}
@@ -862,12 +853,16 @@ function setupMusic() {
   );
 
   addEventListener('pagehide', stopMusic);
-  addEventListener('blur', stopMusic);
+
 
   window.stopMusic = stopMusic;
 
-  window.startMusic = () =>
-    a.play().catch(() => {});
+  window.startMusic = () => {
+    if (musicWanted && !document.hidden && currentPage !== 5) return a.play().catch(() => {});
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) window.startMusic();
+  });
 }
 
 // --- Service Worker ---
@@ -875,7 +870,7 @@ if (
   'serviceWorker' in navigator
 ) {
   navigator.serviceWorker
-    .register('sw.js')
+    .register('sw.js', { updateViaCache: 'none' })
     .catch(() => {});
 }
 
@@ -895,7 +890,7 @@ function bootIntro() {
     <h1 class="boot-title">Para ti mi vida</h1>
     <p class="boot-subtitle">Hay algo que quiero que descubras...</p>
     <div class="boot-progress" aria-hidden="true"><span></span></div>
-    <p class="boot-caption">Contigo <u>4ever</u></p>
+    <p class="boot-caption"><u>Contigo 4ever</u></p>
   `;
 
   // Duración total prevista: 10 s, incluido el desvanecimiento.
@@ -905,6 +900,16 @@ function bootIntro() {
     window.setTimeout(resolve, 10000 - fadeMs);
   });
 }
+
+// Ignore only work cancelled by a newer scene, preserving real errors.
+const safeScene = fn => (...args) => fn(...args).catch(error => {
+  if (error.name !== 'AbortError') console.error(error);
+});
+install = safeScene(install);
+almost = safeScene(almost);
+yearHub = safeScene(yearHub);
+upcomingYear = safeScene(upcomingYear);
+renderPage = safeScene(renderPage);
 
 // --- Inicio ---
 addEventListener(

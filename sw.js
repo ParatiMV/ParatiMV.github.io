@@ -1,91 +1,40 @@
-const V = 'regalo-v14';
-
-const SHELL = [
-  './',
-  'index.html',
-  'style.css',
-  'script.js',
-  'config.js',
-  'manifest.json',
-  'assets/icon-192.png',
-  'assets/icon-512.png',
-  'assets/apple-touch-icon.png',
-  'artist.jpg'
-];
-
-self.addEventListener('install', e =>
-  e.waitUntil(
-    caches
-      .open(V)
-      .then(c =>
-        Promise.allSettled(
-          SHELL.map(
-            u =>
-              c.add(
-                new Request(u, {
-                  cache: 'reload'
-                })
-              )
-          )
-        )
-      )
-      .then(() => self.skipWaiting())
-  )
-);
-
-self.addEventListener('activate', e =>
-  e.waitUntil(
-    caches
-      .keys()
-      .then(k =>
-        Promise.all(
-          k
-            .filter(x => x !== V)
-            .map(x => caches.delete(x))
-        )
-      )
-      .then(() => clients.claim())
-  )
-);
-
-self.addEventListener('fetch', e => {
-  const r = e.request;
-  const u = new URL(r.url);
-
-  if (
-    r.method !== 'GET' ||
-    u.origin !== location.origin ||
-    r.headers.has('range') ||
-    /\.(mp4|webm|mp3)$/.test(u.pathname)
-  ) {
-    return;
+const V = 'regalo-v17';
+const PREFIX = 'regalo-';
+const SHELL = ['./', 'index.html', 'style.css?v=17', 'script.js?v=17',
+  'config.js?v=17', 'manifest.json'];
+const OPTIONAL = ['assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png'];
+self.addEventListener('install', e => e.waitUntil((async () => {
+  const c = await caches.open(V);
+  await c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })));
+  await Promise.allSettled(OPTIONAL.map(u => c.add(u)));
+  // Activate naturally after old clients close, avoiding mixed app versions.
+})()));
+self.addEventListener('activate', e => e.waitUntil((async () => {
+  for (const key of await caches.keys()) {
+    if (key.startsWith(PREFIX) && key !== V) await caches.delete(key);
   }
-
-  e.respondWith(
-    fetch(r.url, {
-      cache: 'no-cache'
-    })
-      .then(res => {
-        if (res.ok) {
-          const copy = res.clone();
-
-          caches
-            .open(V)
-            .then(c => c.put(r.url, copy));
-        }
-
-        return res;
-      })
-      .catch(() =>
-        caches
-          .match(r.url, {
-            ignoreSearch: true
-          })
-          .then(
-            h =>
-              h ||
-              caches.match('index.html')
-          )
-      )
-  );
+  await self.clients.claim();
+})()));
+self.addEventListener('fetch', e => {
+  const r = e.request, u = new URL(r.url);
+  if (r.method !== 'GET' || u.origin !== self.location.origin ||
+      r.headers.has('range') || /\.(mp4|webm|mp3|jpg|jpeg)$/i.test(u.pathname)) return;
+  const allowed = new Set([...SHELL, ...OPTIONAL].map(p => new URL(p, self.registration.scope).pathname));
+  if (r.mode !== 'navigate' && !allowed.has(u.pathname)) return;
+  e.respondWith((async () => {
+    const c = await caches.open(V);
+    try {
+      const response = await fetch(r);
+      if (response.ok) {
+        const copy = response.clone();
+        e.waitUntil(c.put(r, copy));
+      }
+      return response;
+    } catch (_) {
+      const cached = await c.match(r);
+      if (cached) return cached;
+      if (r.mode === 'navigate') return (await c.match(new URL('index.html', self.registration.scope))) || Response.error();
+      return Response.error();
+    }
+  })());
 });
