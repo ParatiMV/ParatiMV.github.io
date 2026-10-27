@@ -262,6 +262,32 @@ function rememberEntry() {
   catch (_) { /* La experiencia sigue funcionando sin almacenamiento. */ }
 }
 
+// --- Saludos de regreso ---
+const GREETING_KEY = 'paratimv:return-greetings';
+function pickReturnGate() {
+  const options = Array.isArray(T.returnGates) && T.returnGates.length
+    ? T.returnGates : [T.returnGate || T.gate];
+  const signature = JSON.stringify(options);
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(GREETING_KEY)); } catch (_) {}
+  const valid = saved?.signature === signature;
+  const last = valid && Number.isInteger(saved.last) ? saved.last : -1;
+  let remaining = valid && Array.isArray(saved.remaining)
+    ? [...new Set(saved.remaining.filter(i => Number.isInteger(i) && i >= 0 && i < options.length && i !== last))]
+    : [];
+  if (!remaining.length) remaining = options.map((_, index) => index);
+  const eligible = remaining.filter(index => index !== last);
+  const pool = eligible.length ? eligible : remaining;
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  try {
+    localStorage.setItem(GREETING_KEY, JSON.stringify({
+      signature, last: chosen, remaining: remaining.filter(index => index !== chosen)
+    }));
+  } catch (_) {}
+  return options[chosen];
+}
+
+// --- Aviso de vídeo ---
 let activeVideoShortcut = null;
 function dismissVideoShortcut() {
   activeVideoShortcut?.();
@@ -276,35 +302,64 @@ function showVideoShortcut(root) {
   notice.className = 'return-notice';
   notice.setAttribute('aria-label', 'Acceso rápido al vídeo');
   notice.innerHTML = `
-    <button type="button" class="notice-close" aria-label="Cerrar notificación">×</button>
-    <p class="notice-title" role="status">${esc(T.videoPrompt)}</p>
-    <div class="notice-actions" role="group" aria-label="Elegir si quieres saltar al vídeo">
-      <button type="button" class="notice-choice" data-choice="yes" aria-pressed="false">Sí</button>
-      <button type="button" class="notice-choice" data-choice="no" aria-pressed="false">No</button>
-      <button type="button" class="notice-go" disabled>Ir</button>
+    <div class="notice-header">
+      <span class="notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m9 6 9 6-9 6V6Z" fill="currentColor"/></svg>
+      </span>
+      <div class="notice-source">
+        <span class="notice-brand">PARA TI MI VIDA</span>
+        <span class="notice-context">Un pequeño atajo</span>
+      </div>
+      <button type="button" class="notice-close" aria-label="Cerrar notificación">×</button>
     </div>
+    <p class="notice-title" role="status">${esc(T.videoPrompt)}</p>
+    <p class="notice-hint">Elige cómo quieres seguir.</p>
+    <div class="notice-actions">
+      <div class="notice-options" role="group" aria-label="Elegir si quieres saltar al vídeo">
+        <button type="button" class="notice-choice" data-choice="yes" aria-pressed="false">Sí</button>
+        <button type="button" class="notice-choice" data-choice="no" aria-pressed="false">No</button>
+      </div>
+      <button type="button" class="notice-go" disabled>
+        Ir <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <span class="notice-handle" aria-hidden="true"></span>
   `;
 
-  let choice = null;
-  const dismiss = () => {
+  let choice = null, closing = false, removeTimer = 0;
+  const remove = () => {
+    clearTimeout(removeTimer);
     notice.remove();
     if (activeVideoShortcut === dismiss) activeVideoShortcut = null;
   };
+  const dismiss = (animate = false) => {
+    if (!animate) return remove();
+    if (closing) return;
+    closing = true;
+    notice.inert = true;
+    delete notice.dataset.dragging;
+    notice.classList.add('leaving');
+    removeTimer = setTimeout(remove, 220);
+  };
   activeVideoShortcut = dismiss;
-  notice.querySelector('.notice-close').onclick = dismiss;
+  notice.querySelector('.notice-close').onclick = () => dismiss(true);
+  notice.addEventListener('keydown', event => {
+    if (event.key === 'Escape') dismiss(true);
+  });
   const goButton = notice.querySelector('.notice-go');
   const choices = [...notice.querySelectorAll('[data-choice]')];
   for (const button of choices) {
     button.onclick = () => {
+      if (closing) return;
       choice = button.dataset.choice;
       for (const option of choices) option.setAttribute('aria-pressed', String(option === button));
       goButton.disabled = false;
     };
   }
   goButton.onclick = () => {
-    if (!choice || !root.isConnected || root.dataset.version !== String(sceneVersion)) return;
+    if (closing || !choice || !root.isConnected || root.dataset.version !== String(sceneVersion)) return;
     const skip = choice === 'yes';
-    dismiss();
+    dismiss(!skip);
     if (skip) goToVideo();
   };
 
@@ -312,36 +367,42 @@ function showVideoShortcut(root) {
   const resetDrag = () => {
     gesture = null;
     delete notice.dataset.dragging;
-    notice.style.removeProperty('transform');
+    notice.style.removeProperty('--notice-drag-y');
     notice.style.removeProperty('opacity');
   };
   notice.addEventListener('pointerdown', event => {
-    if (!event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
-    gesture = { x: event.clientX, y: event.clientY, pointer: event.pointerId };
-    notice.setPointerCapture(event.pointerId);
+    if (closing || !event.isPrimary || event.button !== 0) return;
+    const captured = !event.target.closest('button');
+    gesture = { x: event.clientX, y: event.clientY, pointer: event.pointerId, captured };
+    if (captured) notice.setPointerCapture(event.pointerId);
   });
   notice.addEventListener('pointermove', event => {
     if (!gesture || gesture.pointer !== event.pointerId) return;
     const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
-    if (Math.abs(dx) <= Math.abs(dy)) return;
+    if (dy > -8 || Math.abs(dy) <= Math.abs(dx)) return;
+    if (!gesture.captured) {
+      notice.setPointerCapture(event.pointerId);
+      gesture.captured = true;
+    }
     notice.dataset.dragging = 'true';
-    notice.style.transform = `translateX(${dx}px)`;
-    notice.style.opacity = String(Math.max(.25, 1 - Math.abs(dx) / 240));
+    notice.style.setProperty('--notice-drag-y', dy + 'px');
+    notice.style.opacity = String(Math.max(.25, 1 + dy / 220));
   });
   notice.addEventListener('pointerup', event => {
     if (!gesture || gesture.pointer !== event.pointerId) return;
     const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
     resetDrag();
-    if (Math.abs(dx) >= 60 && Math.abs(dx) > Math.abs(dy) * 1.2) dismiss();
+    if (dy <= -56 && Math.abs(dy) > Math.abs(dx) * 1.2) dismiss(true);
   });
   notice.addEventListener('pointercancel', resetDrag);
+  notice.addEventListener('lostpointercapture', resetDrag);
   document.body.append(notice);
 }
 
 // --- Entrada ---
 async function password(returningVisit = false) {
   const s = await go(`
-    ${lines(returningVisit ? T.returnGate : T.gate)}
+    ${lines(returningVisit ? pickReturnGate() : T.gate)}
 
     <div class="pw l">
       <input

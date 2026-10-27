@@ -16,7 +16,14 @@ const CONFIG = {
     install: ["Quiero que esto lo tengas como algo tuyo.", "Instálalo en tu móvil y vuelve desde ahí."],
     almost: ["Casi.", "Ahora ábrela desde la aplicación que acabas de instalar 💞"],
     gate: ["Esto es para ti.", "Pero primero tienes que entrar."],
-    returnGate: ["¿Otra vez tú?", "Pon la contraseña, anda."],
+    returnGates: [
+      ["¿Otra vez por aquí?", "La contraseña y te dejo pasar."],
+      ["Ya te sabes el camino.", "Solo falta la contraseña."],
+      ["Mira quién ha vuelto.", "Venga, tú ya sabes cómo entrar."],
+      ["Vienes a repetir?", "Pon la contraseña y seguimos."],
+      ["Te estaba esperando.", "Contraseña primero, regalito después."],
+      ["Anda, si eres tú.", "La contraseña sigue siendo la misma."]
+    ],
     videoPrompt: "¿Saltar directamente al vídeo?",
     intro: ["Vale.", "Aquí no hay nada que contestar,", "ni nada que hacer…", "solo cosas que te suenan."],
     universe: "Toca lo que reconozcas.",
