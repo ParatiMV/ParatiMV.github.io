@@ -93,3 +93,16 @@ El gesto ahora es vertical hacia arriba, con seguimiento del dedo y salida anima
 Validación: 18 pruebas Node (13 de viewport y 5 del selector de saludos), recorridos de navegador entre rondas y recargas, almacenamiento bloqueado/corrupto, No/Ir, Sí/Ir, historial, cierre, gesto ascendente desde tarjeta y botones, y rechazo del gesto lateral. Centrado comprobado en 393×852 y 428×926 y altura superior sin cambios. Capturas revisadas en ambos tamaños. El recorrido normal de intro, teclado/zoom, carta, música y vídeo también pasa con medios bloqueados y Audio simulado. El bloque de recuperación del viewport y la carta permanecen idénticos. HTML/caché pasan a v23.
 
 La revisión de los gestos se hizo en Chromium; queda la comprobación táctil habitual en la PWA del iPhone.
+
+## Sobre rosa al final
+
+La página 07/07 muestra Y una última cosita y el sobre rosa elegido en la vista previa. La felicitación solo se muestra dentro de la carta, con Feliz cumpleaños, Carmen 💞. Se retira su repetición del párrafo interior. El mensaje es un solo párrafo justificado con comas y punto final y la firma Contigo 4ever subraya únicamente 4ever. La variante nocturna no se incorpora.
+
+El corazón del lacre es un SVG decorativo centrado mediante grid dentro del sello, evitando la línea de base variable del carácter de texto que aparecía desplazado en iPhone. La regla del sello tiene mayor especificidad que la regla genérica de los pliegues, de modo que display:grid no queda sobrescrito por display:block. La solapa se abre antes de mostrar un diálogo nativo, con foco contenido, fondo inerte, cierre por X o Escape y devolución del foco al sobre. El cierre es accesible incluso al desplazar una carta larga. Se puede volver a abrir. El cambio de escena durante la apertura cancela el diálogo pendiente.
+
+Los textos nuevos viven en CONFIG.texts. HTML y caché se incrementan a v24. No se modifican medios, la carta personal, la contraseña, la recuperación del viewport ni los estilos anteriores, solo se añaden estilos del componente final. Se verificó que estos bloques y el mensaje personal permanecen idénticos a main.
+
+Validación: sintaxis JS, 18 pruebas Node y comprobaciones de caché, además del recorrido móvil normal con intro de diez segundos, teclado y zoom simulados, carta, música, fallo de vídeo y archivo. El sobre pasa apertura, cierre, reapertura, Escape, posición del corazón y límites del diálogo en 393×852, 428×926, 320×568 y 926×428. También se comprueba la cancelación al navegar durante la apertura. Sin errores JS no capturados, con todas las solicitudes de medios personales bloqueadas y Audio simulado. Se revisaron capturas del sobre cerrado y abierto.
+
+Esta validación del sobre utiliza Chromium móvil simulado. Su apertura y cierre en la PWA de iPhone quedan para comprobación física. La solución del viewport previamente confirmada por el usuario se conserva sin cambios.
+

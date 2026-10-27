@@ -1013,11 +1013,71 @@ async function renderArt() {
 async function renderEnd() {
   updatePageNav(true);
 
-  await go(`
-    <h1 class="final l on">
-      ${esc(T.final)}
-    </h1>
+  const s = await go(`
+    <div class="final-envelope-content">
+      <p class="final-envelope-brand">PARA TI MI VIDA</p>
+      <h1 class="final-envelope-heading">${esc(T.finalEnvelopeTitle)}</h1>
+      <button class="final-envelope-trigger" type="button"
+        aria-label="Abrir el sobre final" aria-haspopup="dialog"
+        aria-expanded="false" aria-controls="final-note">
+        <span class="final-envelope-art" aria-hidden="true">
+          <span class="final-envelope-back"></span>
+          <span class="final-envelope-slip">Para ${esc(CONFIG.name)}</span>
+          <span class="final-envelope-flap"></span>
+          <span class="final-envelope-left"></span>
+          <span class="final-envelope-right"></span>
+          <span class="final-envelope-bottom"></span>
+          <span class="final-envelope-seal">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </span>
+        <span class="final-envelope-label">Toca el sobre</span>
+      </button>
+    </div>
+    <dialog id="final-note" class="final-note-dialog" aria-labelledby="final-note-title">
+      <div class="final-note-bar">
+        <span>PARA TI</span>
+        <button class="final-note-close" type="button" aria-label="Cerrar la carta" autofocus>×</button>
+      </div>
+      <div class="final-note-content">
+        <h2 id="final-note-title">${esc(T.final).replace(/(\S+) (💞)$/, '<span class="final-note-name">$1 $2</span>')}</h2>
+        <div class="final-note-rule" aria-hidden="true"></div>
+        <p class="final-note-message">${esc(T.finalNote)}</p>
+        <p class="final-note-signature">Contigo <u>4ever</u></p>
+      </div>
+    </dialog>
   `, 'warm');
+  s.classList.add('final-envelope-scene', 'has-page-nav');
+
+  const trigger = s.querySelector('.final-envelope-trigger');
+  const dialog = s.querySelector('.final-note-dialog');
+  trigger.onclick = async () => {
+    if (trigger.disabled || !s.isConnected || s.dataset.version !== String(sceneVersion)) return;
+    trigger.disabled = true;
+    s.classList.add('envelope-open');
+    try {
+      await sceneSleep(s, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 350);
+      // The native dialog keeps focus inside and makes the background inert.
+      dialog.showModal();
+      trigger.setAttribute('aria-expanded', 'true');
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        s.classList.remove('envelope-open');
+        trigger.disabled = false;
+        console.error(error);
+      }
+    }
+  };
+  s.querySelector('.final-note-close').onclick = () => dialog.close();
+  dialog.addEventListener('close', () => {
+    s.classList.remove('envelope-open');
+    trigger.disabled = false;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (s.isConnected && s.dataset.version === String(sceneVersion)) trigger.focus({ preventScroll: true });
+  });
 }
 
 // --- Botón del archivo ---
