@@ -11,6 +11,70 @@ const ua = navigator.userAgent;
 const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = /Android/.test(ua);
 
+// --- Recuperación del viewport de la PWA en iOS ---
+function setupViewportRecovery() {
+  if (!isIOS || !(standalone() || dev)) return { recover() {} };
+
+  const root = document.documentElement;
+  const viewport = window.visualViewport;
+  let frame = 0;
+  let settleTimer = 0;
+
+  const editing = () => {
+    const active = document.activeElement;
+    return active?.matches('input, textarea') || active?.isContentEditable;
+  };
+
+  const refresh = () => {
+    frame = 0;
+    // Let the keyboard and accessibility pinch zoom pan freely.
+    if (document.hidden || editing() ||
+        (viewport && Math.abs(viewport.scale - 1) > .02)) return;
+
+    const height = Math.round(Math.max(window.innerHeight, viewport?.height || 0));
+    if (height > 0) {
+      const value = height + 'px';
+      if (root.style.getPropertyValue('--app-height') !== value) {
+        root.style.setProperty('--app-height', value);
+      }
+    }
+
+    // iOS can leave the document scrolled after dismissing its keyboard or zoom.
+    // Reset only the document, preserving scroll inside the letter and scenes.
+    const scrolling = document.scrollingElement;
+    if (window.scrollX || window.scrollY || scrolling?.scrollTop ||
+        scrolling?.scrollLeft || viewport?.offsetTop || viewport?.offsetLeft) {
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const schedule = () => {
+    if (!frame) frame = requestAnimationFrame(refresh);
+  };
+
+  const recover = () => {
+    schedule();
+    clearTimeout(settleTimer);
+    // Keyboard dismissal can finish after the focus/resize event.
+    settleTimer = setTimeout(schedule, 450);
+  };
+
+  document.addEventListener('focusout', recover);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) recover();
+  });
+  addEventListener('pageshow', recover);
+  addEventListener('resize', recover);
+  addEventListener('scroll', schedule, { passive: true });
+  viewport?.addEventListener('resize', recover);
+  viewport?.addEventListener('scroll', schedule, { passive: true });
+  recover();
+  return { recover };
+}
+const viewportRecovery = setupViewportRecovery();
+
+// --- Escenas ---
+
 let sceneVersion = 0;
 const cancelled = () => Object.assign(new Error('Scene replaced'), { name: 'AbortError' });
 const sceneSleep = async (root, ms) => {
@@ -210,12 +274,18 @@ async function password() {
   };
 
   await new Promise(res => {
+    let accepted = false;
     const check = () => {
+      if (accepted) return;
       if (
         i.value.trim().toLowerCase() ===
         CONFIG.password.toLowerCase()
       ) {
+        accepted = true;
         window.startMusic?.();
+        i.blur();
+        s.querySelector('#ok').disabled = true;
+        viewportRecovery.recover();
         return res();
       }
 
@@ -230,9 +300,14 @@ async function password() {
     $('#ok').onclick = check;
 
     i.onkeydown = e => {
-      if (e.key === 'Enter') check();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        check();
+      }
     };
   });
+  // Allow focus dismissal and its first layout refresh before the next scene.
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 }
 
 // --- Archivo de cumpleaños ---
