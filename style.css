@@ -40,9 +40,9 @@
 html,
 body {
   width: 100%;
-  height: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -51,30 +51,24 @@ body {
   font-family: var(--serif);
 }
 
-/* One document canvas paints the story and the iPhone safe areas.
-   A fixed pseudo-element can stop before the area painted by Safari. */
+/* Paint the background on a full-height element, independently of the
+   document client height and without a fade masking the bottom edge. */
 html {
-  --edge-fade: linear-gradient(to top,
-    var(--bg) 0,
-    var(--bg) env(safe-area-inset-bottom, 0px),
-    transparent calc(env(safe-area-inset-bottom, 0px) + 5rem));
-  background-color: var(--bg);
-  background-image:
-    var(--edge-fade),
-    radial-gradient(120% 80% at 50% 0%, var(--g1), transparent 70%),
-    radial-gradient(100% 70% at 50% 110%, var(--g2), transparent 70%);
-  background-repeat: no-repeat;
+  background: var(--bg);
   transition: --g1 2.5s ease, --g2 2.5s ease;
 }
 
 body {
   position: relative;
-  background: transparent;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, var(--g1), transparent 70%),
+    radial-gradient(100% 70% at 50% 110%, var(--g2), transparent 70%);
+  background-repeat: no-repeat;
 }
 
-html.booting {
+body.booting {
   background-image:
-    var(--edge-fade),
     radial-gradient(ellipse at 50% 42%, rgba(232, 163, 184, .13), transparent 48%),
     radial-gradient(ellipse at 50% 100%, rgba(141, 179, 234, .08), transparent 42%);
 }
@@ -101,7 +95,7 @@ html[data-m="black"] { --g1: #000; --g2: #000; }
   gap: 0;
   padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
   overflow: hidden;
-  /* El fondo lo pinta html, también fuera de este panel. */
+  /* El fondo lo pinta body a la altura completa del viewport. */
   background: transparent;
   text-align: center;
   transition: opacity .75s ease;
