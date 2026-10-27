@@ -1,7 +1,7 @@
-const V = 'regalo-v21';
+const V = 'regalo-v22';
 const PREFIX = 'regalo-';
-const SHELL = ['./', 'index.html', 'style.css?v=21', 'script.js?v=21',
-  'config.js?v=21', 'manifest.json'];
+const SHELL = ['./', 'index.html', 'style.css?v=22', 'script.js?v=22',
+  'config.js?v=22', 'manifest.json'];
 const OPTIONAL = ['assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png'];
 self.addEventListener('install', e => e.waitUntil((async () => {
   const c = await caches.open(V);

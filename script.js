@@ -114,6 +114,7 @@ const sceneSleep = async (root, ms) => {
 };
 
 async function go(html, mood) {
+  dismissVideoShortcut();
   const version = ++sceneVersion;
   app.querySelectorAll('video').forEach(v => v.pause());
   const cur = app.firstElementChild;
@@ -250,10 +251,97 @@ async function almost() {
   $('#back').onclick = install;
 }
 
+// --- Regresos: solo se recuerda una entrada correcta, nunca la contraseña ---
+const VISIT_KEY = 'paratimv:entered';
+function hasEnteredBefore() {
+  try { return localStorage.getItem(VISIT_KEY) === '1'; }
+  catch (_) { return false; }
+}
+function rememberEntry() {
+  try { localStorage.setItem(VISIT_KEY, '1'); }
+  catch (_) { /* La experiencia sigue funcionando sin almacenamiento. */ }
+}
+
+let activeVideoShortcut = null;
+function dismissVideoShortcut() {
+  activeVideoShortcut?.();
+}
+
+function showVideoShortcut(root) {
+  dismissVideoShortcut();
+  if (!root.isConnected || root.dataset.version !== String(sceneVersion)) return;
+
+  const notice = document.createElement('aside');
+  notice.id = 'video-shortcut';
+  notice.className = 'return-notice';
+  notice.setAttribute('aria-label', 'Acceso rápido al vídeo');
+  notice.innerHTML = `
+    <button type="button" class="notice-close" aria-label="Cerrar notificación">×</button>
+    <p class="notice-title" role="status">${esc(T.videoPrompt)}</p>
+    <div class="notice-actions" role="group" aria-label="Elegir si quieres saltar al vídeo">
+      <button type="button" class="notice-choice" data-choice="yes" aria-pressed="false">Sí</button>
+      <button type="button" class="notice-choice" data-choice="no" aria-pressed="false">No</button>
+      <button type="button" class="notice-go" disabled>Ir</button>
+    </div>
+  `;
+
+  let choice = null;
+  const dismiss = () => {
+    notice.remove();
+    if (activeVideoShortcut === dismiss) activeVideoShortcut = null;
+  };
+  activeVideoShortcut = dismiss;
+  notice.querySelector('.notice-close').onclick = dismiss;
+  const goButton = notice.querySelector('.notice-go');
+  const choices = [...notice.querySelectorAll('[data-choice]')];
+  for (const button of choices) {
+    button.onclick = () => {
+      choice = button.dataset.choice;
+      for (const option of choices) option.setAttribute('aria-pressed', String(option === button));
+      goButton.disabled = false;
+    };
+  }
+  goButton.onclick = () => {
+    if (!choice || !root.isConnected || root.dataset.version !== String(sceneVersion)) return;
+    const skip = choice === 'yes';
+    dismiss();
+    if (skip) goToVideo();
+  };
+
+  let gesture = null;
+  const resetDrag = () => {
+    gesture = null;
+    delete notice.dataset.dragging;
+    notice.style.removeProperty('transform');
+    notice.style.removeProperty('opacity');
+  };
+  notice.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
+    gesture = { x: event.clientX, y: event.clientY, pointer: event.pointerId };
+    notice.setPointerCapture(event.pointerId);
+  });
+  notice.addEventListener('pointermove', event => {
+    if (!gesture || gesture.pointer !== event.pointerId) return;
+    const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+    if (Math.abs(dx) <= Math.abs(dy)) return;
+    notice.dataset.dragging = 'true';
+    notice.style.transform = `translateX(${dx}px)`;
+    notice.style.opacity = String(Math.max(.25, 1 - Math.abs(dx) / 240));
+  });
+  notice.addEventListener('pointerup', event => {
+    if (!gesture || gesture.pointer !== event.pointerId) return;
+    const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+    resetDrag();
+    if (Math.abs(dx) >= 60 && Math.abs(dx) > Math.abs(dy) * 1.2) dismiss();
+  });
+  notice.addEventListener('pointercancel', resetDrag);
+  document.body.append(notice);
+}
+
 // --- Entrada ---
-async function password() {
+async function password(returningVisit = false) {
   const s = await go(`
-    ${lines(T.gate)}
+    ${lines(returningVisit ? T.returnGate : T.gate)}
 
     <div class="pw l">
       <input
@@ -313,6 +401,7 @@ async function password() {
         CONFIG.password.toLowerCase()
       ) {
         accepted = true;
+        rememberEntry();
         window.startMusic?.();
         i.blur();
         s.querySelector('#ok').disabled = true;
@@ -349,6 +438,7 @@ const YEARS = [
   { year: 2029, age: 18, status: 'Próximamente' }
 ];
 
+let offerVideoOnIntro = false;
 let pageHistory = [];
 let historyIndex = 0;
 let currentPage = 0;
@@ -539,7 +629,15 @@ function goNextPage() {
   renderPage(currentPage);
 }
 
-function startJourney() {
+function goToVideo() {
+  pageHistory = pageHistory.slice(0, historyIndex + 1);
+  pageHistory.push(5);
+  historyIndex = pageHistory.length - 1;
+  renderPage(5);
+}
+
+function startJourney({ offerVideo = false } = {}) {
+  offerVideoOnIntro = offerVideo;
   pageHistory = [0];
   historyIndex = 0;
   currentPage = 0;
@@ -589,6 +687,10 @@ async function renderIntro() {
   `, 'rose');
 
   s.classList.add('has-page-nav');
+  if (offerVideoOnIntro) {
+    offerVideoOnIntro = false;
+    showVideoShortcut(s);
+  }
 
   await reveal(s, 1400);
   await sceneSleep(s, 500);
@@ -890,13 +992,14 @@ function makeArchiveButton() {
 
 // --- Arranque ---
 async function story() {
+  const returningVisit = hasEnteredBefore();
   setupMusic();
 
-  await password();
+  await password(returningVisit);
 
   makeArchiveButton();
 
-  startJourney();
+  startJourney({ offerVideo: returningVisit });
 }
 
 // --- Música ---
