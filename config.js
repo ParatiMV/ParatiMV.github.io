@@ -20,7 +20,7 @@ const CONFIG = {
       ["¿Otra vez por aquí?", "La contraseña y te dejo pasar."],
       ["Ya te sabes el camino.", "Solo falta la contraseña."],
       ["Mira quién ha vuelto.", "Venga, tú ya sabes cómo entrar."],
-      ["¿Vienes a repetir?", "Pon la contraseña y seguimos."],
+      ["Vienes a repetir?", "Pon la contraseña y seguimos."],
       ["Te estaba esperando.", "Contraseña primero, regalito después."],
       ["Anda, si eres tú.", "La contraseña sigue siendo la misma."]
     ],
