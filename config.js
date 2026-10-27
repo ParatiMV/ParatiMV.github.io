@@ -16,6 +16,8 @@ const CONFIG = {
     install: ["Quiero que esto lo tengas como algo tuyo.", "Instálalo en tu móvil y vuelve desde ahí."],
     almost: ["Casi.", "Ahora ábrela desde la aplicación que acabas de instalar 💞"],
     gate: ["Esto es para ti.", "Pero primero tienes que entrar."],
+    returnGate: ["¿Otra vez tú?", "Pon la contraseña, anda."],
+    videoPrompt: "¿Saltar directamente al vídeo?",
     intro: ["Vale.", "Aquí no hay nada que contestar,", "ni nada que hacer…", "solo cosas que te suenan."],
     universe: "Toca lo que reconozcas.",
     eggs: "Y algunas cosas que solo entendemos nosotros.",
@@ -54,3 +56,4 @@ const CONFIG = {
     { phrase: "Te comoooo", note: "" }
   ]
 };
+
