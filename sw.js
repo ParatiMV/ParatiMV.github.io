@@ -1,10 +1,10 @@
-const V = 'regalo-v25';
+const V = 'regalo-v26';
 const PREFIX = 'regalo-';
 const SHELL = ['./', 'index.html', 'manifest.json'];
 self.addEventListener('install', e => e.waitUntil((async () => {
   const c = await caches.open(V);
   await c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })));
-  // The closed service screen is the only app shell retained by this version.
+  await self.skipWaiting();
 })()));
 self.addEventListener('activate', e => e.waitUntil((async () => {
   for (const key of await caches.keys()) {

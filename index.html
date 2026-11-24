@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0c14">
 <meta name="robots" content="noindex,nofollow">
-<title>Servicio no disponible</title>
+<title>410 — Gone</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="icon" href="assets/icon-192.png">
@@ -14,27 +14,30 @@
 <meta name="apple-mobile-web-app-title" content="Para ti">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
-:root{color-scheme:dark;--bg:#0a0c14;--text:#f4efe9;--muted:rgba(244,239,233,.58);--rose:#e8a3b8}
+:root{color-scheme:dark;--bg:#0a0c14;--text:#e8e8eb;--muted:#a4a5ad;--rose:#e8a3b8}
 *{box-sizing:border-box}
 html,body{width:100%;min-height:100%;margin:0}
 body{min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#24243a 0%,transparent 58%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-main{width:min(100%,420px);text-align:center;padding:42px 28px}
-.mark{width:58px;height:58px;margin:0 auto 30px;border:1px solid rgba(232,163,184,.35);border-radius:50%;display:grid;place-items:center;color:var(--rose);font:300 25px Georgia,serif}
-.eyebrow{margin:0 0 14px;color:var(--rose);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
-h1{margin:0;font:400 clamp(2rem,8vw,2.65rem)/1.15 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
-.description{max-width:31ch;margin:18px auto 0;color:var(--muted);font-size:.96rem;line-height:1.7}
-.rule{width:42px;height:1px;margin:34px auto;background:rgba(232,163,184,.42)}
-.status{color:rgba(244,239,233,.36);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase}
+main{width:min(100%,440px);padding:42px 28px}
+.code{margin:0 0 22px;color:#858894;font-size:.72rem;font-weight:650;letter-spacing:.16em}
+h1{margin:0;font:400 clamp(2.7rem,12vw,4rem)/1 Georgia,"Times New Roman",serif;letter-spacing:-.055em}
+.message{margin:25px 0 0;color:var(--muted);font-size:.98rem;line-height:1.75}
+.message p{margin:0 0 15px}
+.message p:last-child{margin-bottom:0}
+.rule{height:1px;margin:34px 0 17px;background:#292b34}
+.footer{margin:0;color:#656873;font-size:.68rem;font-weight:600;letter-spacing:.13em}
 </style>
 </head>
 <body>
 <main>
-  <div class="mark" aria-hidden="true">—</div>
-  <p class="eyebrow">Estado del servicio</p>
-  <h1>Servicio no disponible</h1>
-  <p class="description">Esta web y su aplicación ya no están disponibles. El servicio ha sido cerrado y su contenido ya no se puede consultar.</p>
+  <p class="code">HTTP STATUS 410</p>
+  <h1>Gone.</h1>
+  <div class="message">
+    <p>He decidido cerrar definitivamente esta web y su aplicación. El proyecto llevaba tiempo abandonado y ya no tenía sentido mantenerlo.</p>
+    <p>Y, básicamente, porque quiero y porque sí. La decisión está tomada: el contenido ha sido retirado y no volverá a estar disponible.</p>
+  </div>
   <div class="rule" aria-hidden="true"></div>
-  <p class="status">Servicio finalizado · 410</p>
+  <p class="footer">410 — GONE · CIERRE DEFINITIVO</p>
 </main>
 <script>
 if ('serviceWorker' in navigator) {
