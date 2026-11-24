@@ -2,84 +2,46 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, viewport-fit=cover"
->
-
-<title>Para ti</title>
-
-<meta
-  name="theme-color"
-  content="#0a0c14"
->
-
-<meta
-  name="robots"
-  content="noindex,nofollow"
->
-
-<link
-  rel="manifest"
-  href="manifest.json"
->
-
-<link
-  rel="apple-touch-icon"
-  href="assets/apple-touch-icon.png"
->
-
-<link
-  rel="icon"
-  href="assets/icon-192.png"
->
-
-<meta
-  name="mobile-web-app-capable"
-  content="yes"
->
-
-<meta
-  name="apple-mobile-web-app-capable"
-  content="yes"
->
-
-<meta
-  name="apple-mobile-web-app-title"
-  content="Para ti"
->
-
-<meta
-  name="apple-mobile-web-app-status-bar-style"
-  content="black-translucent"
->
-
-<link
-  rel="stylesheet"
-  href="style.css?v=24"
->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0c14">
+<meta name="robots" content="noindex,nofollow">
+<title>Servicio no disponible</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" href="assets/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Para ti">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{color-scheme:dark;--bg:#0a0c14;--text:#f4efe9;--muted:rgba(244,239,233,.58);--rose:#e8a3b8}
+*{box-sizing:border-box}
+html,body{width:100%;min-height:100%;margin:0}
+body{min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#24243a 0%,transparent 58%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:min(100%,420px);text-align:center;padding:42px 28px}
+.mark{width:58px;height:58px;margin:0 auto 30px;border:1px solid rgba(232,163,184,.35);border-radius:50%;display:grid;place-items:center;color:var(--rose);font:300 25px Georgia,serif}
+.eyebrow{margin:0 0 14px;color:var(--rose);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
+h1{margin:0;font:400 clamp(2rem,8vw,2.65rem)/1.15 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.description{max-width:31ch;margin:18px auto 0;color:var(--muted);font-size:.96rem;line-height:1.7}
+.rule{width:42px;height:1px;margin:34px auto;background:rgba(232,163,184,.42)}
+.status{color:rgba(244,239,233,.36);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase}
+</style>
 </head>
-
 <body>
-
-<main id="app">
-  <div id="boot" aria-hidden="true">
-    <div class="pulse"></div>
-  </div>
+<main>
+  <div class="mark" aria-hidden="true">—</div>
+  <p class="eyebrow">Estado del servicio</p>
+  <h1>Servicio no disponible</h1>
+  <p class="description">Esta web y su aplicación ya no están disponibles. El servicio ha sido cerrado y su contenido ya no se puede consultar.</p>
+  <div class="rule" aria-hidden="true"></div>
+  <p class="status">Servicio finalizado · 410</p>
 </main>
-
-<button
-  id="music"
-  hidden
-  aria-label="Música"
->
-  ♪
-</button>
-
-<script src="config.js?v=24"></script>
-<script src="script.js?v=24"></script>
-
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+  });
+}
+</script>
 </body>
 </html>
-
