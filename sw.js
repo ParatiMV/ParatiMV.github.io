@@ -1,4 +1,4 @@
-const V = 'regalo-v26';
+const V = 'regalo-v27';
 const PREFIX = 'regalo-';
 const SHELL = ['./', 'index.html', 'manifest.json'];
 self.addEventListener('install', e => e.waitUntil((async () => {
